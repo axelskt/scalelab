@@ -1,0 +1,666 @@
+'use client'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ScrapedAd, SupportedLanguage } from '@/lib/ads-db'
+import TranscriptionPanel from '@/components/TranscriptionPanel'
+
+const SOURCE_BADGE: Record<string, { label: string; color: string; dot: string }> = {
+  facebook: { label: 'Meta', color: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20', dot: '#1877F2' },
+  tiktok: { label: 'TikTok', color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-300 dark:bg-zinc-800 dark:border-zinc-700', dot: '#69C9D0' },
+}
+
+const PATTERN_COLORS: Record<string, string> = {
+  PAS: '#FF3B30', AIDA: '#7B61FF', PASTOR: '#AF52DE', BAB: '#F5A623', Story: '#00C7BE',
+}
+
+const KEYWORDS = ['formation', 'masterclass', 'programme', 'coaching', 'revenus', 'business', 'dropshipping', 'copywriting', 'freelance', 'IA', 'crypto', 'immobilier', 'bourse', 'ecommerce']
+
+const SORT_OPTIONS = [
+  { value: 'score', label: 'Winners' },
+  { value: 'runDays', label: 'Plus longtemps actives' },
+  { value: 'date', label: 'Plus récentes' },
+  { value: 'vslScore', label: 'Meilleure note VSL' },
+]
+
+const LANGUAGES: { code: SupportedLanguage; flag: string; label: string }[] = [
+  { code: 'fr', flag: '🇫🇷', label: 'FR' },
+  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'es', flag: '🇪🇸', label: 'ES' },
+  { code: 'de', flag: '🇩🇪', label: 'DE' },
+  { code: 'pt', flag: '🇧🇷', label: 'PT' },
+]
+
+export default function AdsPage() {
+  const [ads, setAds] = useState<ScrapedAd[]>([])
+  const [loading, setLoading] = useState(true)
+  const [scraping, setScraping] = useState(false)
+  const [scrapeProgress, setScrapeProgress] = useState<string | null>(null)
+  const [selectedAd, setSelectedAd] = useState<ScrapedAd | null>(null)
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null)
+  const [transcribingId, setTranscribingId] = useState<string | null>(null)
+  const [adaptModal, setAdaptModal] = useState(false)
+  const [adaptProduct, setAdaptProduct] = useState('')
+  const [adaptAudience, setAdaptAudience] = useState('')
+  const [adaptedScript, setAdaptedScript] = useState<string | null>(null)
+  const [adaptLoading, setAdaptLoading] = useState(false)
+
+  // Filters
+  const [search, setSearch] = useState('')
+  const [filterSource, setFilterSource] = useState('all')
+  const [filterPattern, setFilterPattern] = useState('all')
+  const [filterLanguage, setFilterLanguage] = useState<SupportedLanguage | 'all'>('all')
+  const [filterMinDays, setFilterMinDays] = useState(0)
+  const [filterMinViews, setFilterMinViews] = useState(0)
+  const [sortBy, setSortBy] = useState('score')
+
+  // Scrape panel
+  const [showScrapePanel, setShowScrapePanel] = useState(false)
+  const [scrapeKeyword, setScrapeKeyword] = useState('formation')
+  const [scrapeSource, setScrapeSource] = useState<'facebook' | 'tiktok' | 'both'>('facebook')
+  const [autoScrape, setAutoScrape] = useState(false)
+  const autoScrapeRef = useRef(false)
+
+  const fetchAds = useCallback(async () => {
+    try {
+      const r = await fetch('/api/ads')
+      const d = await r.json()
+      setAds(d.ads || [])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchAds() }, [fetchAds])
+
+  // Auto-scrape continu
+  useEffect(() => {
+    autoScrapeRef.current = autoScrape
+    if (!autoScrape) return
+
+    const keywordQueue = [...KEYWORDS]
+    let idx = 0
+
+    const runNext = async () => {
+      if (!autoScrapeRef.current) return
+      const kw = keywordQueue[idx % keywordQueue.length]
+      idx++
+      setScrapeProgress(`Scraping "${kw}"...`)
+      try {
+        await fetch('/api/ads/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword: kw, source: scrapeSource, country: 'FR', maxAds: 10 }),
+        })
+        await fetchAds()
+      } catch { }
+      setScrapeProgress(`Prochain dans 30s... (${kw} ✓)`)
+      if (autoScrapeRef.current) setTimeout(runNext, 30000)
+    }
+
+    runNext()
+    return () => { autoScrapeRef.current = false }
+  }, [autoScrape, scrapeSource, fetchAds])
+
+  const handleManualScrape = async () => {
+    setScraping(true)
+    setScrapeProgress(`Scraping "${scrapeKeyword}"...`)
+    try {
+      await fetch('/api/ads/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: scrapeKeyword, source: scrapeSource, country: 'FR', maxAds: 20 }),
+      })
+      await fetchAds()
+      setScrapeProgress(`✓ "${scrapeKeyword}" scrapé`)
+    } catch { setScrapeProgress('Erreur') }
+    finally { setScraping(false) }
+  }
+
+  const handleAnalyze = async (ad: ScrapedAd) => {
+    setAnalyzingId(ad.id)
+    try {
+      const r = await fetch('/api/ads/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: ad.id }),
+      })
+      const d = await r.json()
+      setAds(prev => prev.map(a => a.id === ad.id ? d.ad : a))
+      setSelectedAd(d.ad)
+    } finally { setAnalyzingId(null) }
+  }
+
+  const handleTranscribe = async (ad: ScrapedAd) => {
+    setTranscribingId(ad.id)
+    try {
+      const r = await fetch('/api/ads/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: ad.id }),
+      })
+      const d = await r.json()
+      if (d.ad) {
+        setAds(prev => prev.map(a => a.id === ad.id ? d.ad : a))
+        setSelectedAd(d.ad)
+      }
+    } finally { setTranscribingId(null) }
+  }
+
+  const handleAdapt = async () => {
+    if (!selectedAd) return
+    setAdaptLoading(true)
+    try {
+      const r = await fetch('/api/ads/adapt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: selectedAd.id, targetProduct: adaptProduct, targetAudience: adaptAudience }),
+      })
+      const d = await r.json()
+      setAdaptedScript(d.adaptedScript)
+    } finally { setAdaptLoading(false) }
+  }
+
+  const filtered = ads
+    .filter(ad => !search || ad.advertiser.toLowerCase().includes(search.toLowerCase()) || ad.adText.toLowerCase().includes(search.toLowerCase()))
+    .filter(ad => filterSource === 'all' || ad.source === filterSource)
+    .filter(ad => filterPattern === 'all' || ad.analysis?.pattern === filterPattern)
+    .filter(ad => filterLanguage === 'all' || ad.language === filterLanguage)
+    .filter(ad => ad.runDays >= filterMinDays)
+    .filter(ad => !filterMinViews || (ad.engagement?.views || 0) >= filterMinViews)
+    .sort((a, b) => {
+      if (sortBy === 'score') return b.score - a.score
+      if (sortBy === 'runDays') return b.runDays - a.runDays
+      if (sortBy === 'vslScore') return (b.transcription?.score.overall || 0) - (a.transcription?.score.overall || 0)
+      return new Date(b.scrapedAt).getTime() - new Date(a.scrapedAt).getTime()
+    })
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Topbar */}
+      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-6 py-4 flex items-center gap-4 flex-shrink-0">
+        <div>
+          <h1 className="text-lg font-bold text-zinc-900 dark:text-white">Ad Library</h1>
+          <p className="text-xs text-zinc-500">+{ads.length.toLocaleString('fr-FR')} ads · Meta & TikTok · Infopreneurs FR</p>
+        </div>
+
+        {/* Search */}
+        <div className="flex-1 max-w-sm">
+          <input
+            className="w-full h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-amber-400 transition-colors"
+            placeholder="Rechercher un annonceur, un mot-clé..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Sort tabs */}
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg p-0.5">
+          {SORT_OPTIONS.map(opt => (
+            <button key={opt.value} onClick={() => setSortBy(opt.value)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sortBy === opt.value ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Scrape button */}
+        <button onClick={() => setShowScrapePanel(!showScrapePanel)}
+          className="flex items-center gap-2 h-9 px-4 rounded-lg bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors">
+          🔍 Scraper
+        </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-6 py-2 flex items-center gap-3 flex-wrap flex-shrink-0">
+        {/* Source filter */}
+        {(['all', 'facebook', 'tiktok'] as const).map(s => (
+          <button key={s} onClick={() => setFilterSource(s)}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filterSource === s ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600'}`}>
+            {s === 'all' ? `Toutes (${ads.length})` : s === 'facebook' ? `Meta (${ads.filter(a => a.source === 'facebook').length})` : `TikTok (${ads.filter(a => a.source === 'tiktok').length})`}
+          </button>
+        ))}
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+
+        {/* Pattern filter */}
+        {['PAS', 'AIDA', 'PASTOR', 'BAB', 'Story'].map(p => (
+          <button key={p} onClick={() => setFilterPattern(filterPattern === p ? 'all' : p)}
+            className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${filterPattern === p ? 'text-white border-transparent' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300'}`}
+            style={filterPattern === p ? { backgroundColor: PATTERN_COLORS[p], borderColor: PATTERN_COLORS[p] } : {}}>
+            {p}
+          </button>
+        ))}
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+
+        {/* Language filter */}
+        <div className="flex items-center gap-1">
+          <button onClick={() => setFilterLanguage('all')}
+            className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === 'all' ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500'}`}>
+            🌐 Toutes
+          </button>
+          {LANGUAGES.map(lang => (
+            <button key={lang.code} onClick={() => setFilterLanguage(filterLanguage === lang.code ? 'all' : lang.code)}
+              className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === lang.code ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300'}`}>
+              {lang.flag} {lang.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+
+        {/* Min days */}
+        <select value={filterMinDays} onChange={e => setFilterMinDays(Number(e.target.value))}
+          className="h-7 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none">
+          <option value={0}>Actif depuis</option>
+          <option value={7}>7+ jours</option>
+          <option value={30}>30+ jours</option>
+          <option value={60}>60+ jours</option>
+          <option value={90}>90+ jours</option>
+        </select>
+
+        {/* Min views */}
+        <select value={filterMinViews} onChange={e => setFilterMinViews(Number(e.target.value))}
+          className="h-7 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none">
+          <option value={0}>Vues (toutes)</option>
+          <option value={10000}>10K+ vues</option>
+          <option value={50000}>50K+ vues</option>
+          <option value={100000}>100K+ vues</option>
+          <option value={500000}>500K+ vues</option>
+        </select>
+
+        <span className="ml-auto text-xs text-zinc-400">{filtered.length} résultats</span>
+      </div>
+
+      {/* Scrape panel */}
+      {showScrapePanel && (
+        <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-4 flex items-end gap-4 flex-shrink-0">
+          <div>
+            <label className="text-xs text-zinc-500 block mb-1">Mot-clé</label>
+            <input className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400 w-48"
+              value={scrapeKeyword} onChange={e => setScrapeKeyword(e.target.value)} placeholder="formation..." />
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {KEYWORDS.map(kw => (
+              <button key={kw} onClick={() => setScrapeKeyword(kw)}
+                className={`px-2 py-1 rounded-full text-xs border transition-colors ${scrapeKeyword === kw ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500'}`}>
+                {kw}
+              </button>
+            ))}
+          </div>
+          <div>
+            <label className="text-xs text-zinc-500 block mb-1">Source</label>
+            <div className="flex gap-1">
+              {(['facebook', 'tiktok', 'both'] as const).map(s => (
+                <button key={s} onClick={() => setScrapeSource(s)}
+                  className={`h-9 px-3 rounded-lg border text-xs font-medium transition-colors ${scrapeSource === s ? 'border-amber-400 bg-amber-500 text-black' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300'}`}>
+                  {s === 'both' ? 'Les 2' : s === 'facebook' ? 'Meta' : 'TikTok'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onClick={handleManualScrape} disabled={scraping}
+            className="h-9 px-4 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black font-semibold text-sm hover:bg-zinc-700 dark:hover:bg-zinc-200 disabled:opacity-40 transition-colors flex items-center gap-2">
+            {scraping ? <><svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Scraping...</> : 'Lancer'}
+          </button>
+
+          {/* Auto scrape toggle */}
+          <div className="flex items-center gap-2 ml-4">
+            <button onClick={() => setAutoScrape(!autoScrape)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${autoScrape ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoScrape ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Scrape continu</span>
+            {autoScrape && scrapeProgress && (
+              <span className="text-xs text-green-600 dark:text-green-400">{scrapeProgress}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        {/* Ads grid */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <svg className="animate-spin h-8 w-8 text-amber-500" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+              {filtered.map(ad => (
+                <AdCard key={ad.id} ad={ad}
+                  selected={selectedAd?.id === ad.id}
+                  onClick={() => setSelectedAd(selectedAd?.id === ad.id ? null : ad)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Detail panel */}
+        {selectedAd && (
+          <div className="w-96 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto flex-shrink-0">
+            <AdDetailPanel
+              ad={selectedAd}
+              onClose={() => setSelectedAd(null)}
+              onAnalyze={() => handleAnalyze(selectedAd)}
+              onTranscribe={() => handleTranscribe(selectedAd)}
+              analyzing={analyzingId === selectedAd.id}
+              transcribing={transcribingId === selectedAd.id}
+              onAdapt={() => { setAdaptModal(true); setAdaptedScript(null) }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Adapt modal */}
+      {adaptModal && selectedAd && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setAdaptModal(false)}>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-zinc-900 dark:text-white">Adapter à mon produit</h3>
+              <button onClick={() => setAdaptModal(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white">✕</button>
+            </div>
+            <p className="text-xs text-zinc-500">Claude adapte le script de <span className="text-zinc-900 dark:text-white font-medium">{selectedAd.advertiser}</span> ({selectedAd.runDays}j actif) à ton produit.</p>
+            <input className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400"
+              placeholder="Ton produit (ex: IA Manager)" value={adaptProduct} onChange={e => setAdaptProduct(e.target.value)} />
+            <input className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400"
+              placeholder="Ton audience (ex: Entrepreneurs 25-35 ans)" value={adaptAudience} onChange={e => setAdaptAudience(e.target.value)} />
+            {adaptedScript ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">{adaptedScript}</div>
+                <div className="flex gap-2">
+                  <button onClick={() => navigator.clipboard.writeText(adaptedScript)}
+                    className="flex-1 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-semibold">📋 Copier</button>
+                  <button onClick={() => setAdaptedScript(null)} className="flex-1 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-600 dark:text-zinc-400">Régénérer</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={handleAdapt} disabled={adaptLoading || !adaptProduct || !adaptAudience}
+                className="w-full py-2.5 rounded-xl bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 disabled:opacity-40 transition-colors flex items-center justify-center gap-2">
+                {adaptLoading ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Adaptation...</> : '✦ Adapter le script'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const LANG_FLAGS: Record<string, string> = { fr: '🇫🇷', en: '🇬🇧', es: '🇪🇸', de: '🇩🇪', pt: '🇧🇷', it: '🇮🇹', unknown: '🌐' }
+
+function formatViews(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`
+  return n.toString()
+}
+
+// ─── Ad Card (grid) ───────────────────────────────────────────────────────────
+function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; onClick: () => void }) {
+  const src = SOURCE_BADGE[ad.source]
+  const vslScore = ad.transcription?.score.overall
+  const vslColor = vslScore ? (vslScore >= 75 ? '#00D26A' : vslScore >= 55 ? '#F5A623' : '#FF3B30') : null
+
+  return (
+    <div onClick={onClick}
+      className={`rounded-xl border cursor-pointer transition-all hover:shadow-md overflow-hidden bg-white dark:bg-zinc-900 ${selected ? 'border-amber-400 shadow-amber-500/10 shadow-lg' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'}`}>
+      {/* Thumbnail */}
+      <div className="relative h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 overflow-hidden">
+        {ad.thumbnailUrl ? (
+          <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">▷</div>
+        )}
+        <span className={`absolute top-2 left-2 text-xs px-1.5 py-0.5 rounded-full border font-medium ${src.color}`}>
+          {src.label}
+        </span>
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+          <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/60 text-white font-medium">🔥 {ad.runDays}j</span>
+          {ad.language && ad.language !== 'unknown' && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/60 text-white">{LANG_FLAGS[ad.language]}</span>
+          )}
+        </div>
+        {/* VSL score badge */}
+        {vslScore && vslColor && (
+          <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
+            style={{ backgroundColor: vslColor, boxShadow: `0 0 8px ${vslColor}80` }}>
+            {vslScore}
+          </div>
+        )}
+        <span className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/60 px-1.5 py-0.5 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+          ACTIVE
+        </span>
+      </div>
+
+      <div className="p-3 space-y-2">
+        <div className="flex items-start justify-between gap-1">
+          <p className="text-xs font-semibold text-zinc-900 dark:text-white leading-tight line-clamp-1">{ad.advertiser}</p>
+        </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{ad.adText}</p>
+
+        {/* Engagement */}
+        {ad.engagement && (
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <span>👁 {formatViews(ad.engagement.views || 0)}</span>
+            <span>❤ {formatViews(ad.engagement.likes || 0)}</span>
+            <span>💬 {formatViews(ad.engagement.comments || 0)}</span>
+            {ad.engagement.estimated && <span className="text-zinc-300 dark:text-zinc-600 text-xs">est.</span>}
+          </div>
+        )}
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {ad.analysis?.pattern && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+              style={{ backgroundColor: PATTERN_COLORS[ad.analysis.pattern] + '20', color: PATTERN_COLORS[ad.analysis.pattern] }}>
+              {ad.analysis.pattern}
+            </span>
+          )}
+          {ad.transcription && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-500/20">
+              🎙 Analysé
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+          <span>SEE DETAILS</span>
+          <span className="uppercase tracking-wider font-medium">{ad.adUrl.includes('tiktok') ? 'tiktok' : 'fb.me'}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Ad Detail Panel ───────────────────────────────────────────────────────────
+function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transcribing, onAdapt }: {
+  ad: ScrapedAd; onClose: () => void; onAnalyze: () => void; onTranscribe: () => void
+  analyzing: boolean; transcribing: boolean; onAdapt: () => void
+}) {
+  const src = SOURCE_BADGE[ad.source] ?? SOURCE_BADGE['facebook']
+  const startDate = new Date(ad.startDate)
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900 z-10">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-100 dark:border-green-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Actif
+          </span>
+          <span className="text-sm font-semibold text-zinc-900 dark:text-white">Détail ad</span>
+        </div>
+        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-1">✕</button>
+      </div>
+
+      <div className="p-4 space-y-5">
+        {/* Advertiser */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+              {ad.advertiser[0]}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-zinc-900 dark:text-white">{ad.advertiser}</p>
+              <p className="text-xs text-zinc-400">{src.label}</p>
+            </div>
+          </div>
+          <button className="text-xs px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors">
+            ☆ Favori
+          </button>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: 'JOURS ACTIFS', value: `${ad.runDays}j`, color: 'text-zinc-900 dark:text-white' },
+            { label: 'LANGUE', value: `${LANG_FLAGS[ad.language || 'unknown']} ${(ad.language || 'N/A').toUpperCase()}`, color: 'text-zinc-700 dark:text-zinc-300' },
+            { label: 'NOTE VSL', value: ad.transcription ? `${ad.transcription.score.overall}/100` : '—', color: ad.transcription ? (ad.transcription.score.overall >= 75 ? 'text-green-600 dark:text-green-400' : 'text-amber-500') : 'text-zinc-400' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-3 text-center">
+              <p className="text-xs text-zinc-400 mb-1">{label}</p>
+              <p className={`text-sm font-bold ${color}`}>{value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Ad copy */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+              Ad copy
+            </span>
+          </div>
+          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{ad.adText}</p>
+        </div>
+
+        {/* Analysis */}
+        {ad.analysis ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Analyse IA</p>
+              {ad.analysis.pattern && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: PATTERN_COLORS[ad.analysis.pattern] + '20', color: PATTERN_COLORS[ad.analysis.pattern] }}>
+                  {ad.analysis.pattern}
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 italic leading-relaxed">{ad.analysis.summary}</p>
+
+            <div className="grid grid-cols-2 gap-2">
+              <ScoreBar label="Urgence" value={ad.analysis.urgencyLevel} max={10} color="#FF3B30" />
+              <ScoreBar label="Preuve sociale" value={ad.analysis.socialProofLevel} max={10} color="#00D26A" />
+            </div>
+
+            <div className="space-y-2">
+              {[
+                { label: 'Hook', v: ad.analysis.hook },
+                { label: 'Douleur', v: ad.analysis.mainPain },
+                { label: 'CTA', v: ad.analysis.cta },
+              ].filter(x => x.v).map(({ label, v }) => (
+                <div key={label} className="flex gap-2">
+                  <span className="text-xs text-zinc-400 w-16 flex-shrink-0 pt-0.5">{label}</span>
+                  <span className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            {ad.analysis.techniques.length > 0 && (
+              <div>
+                <p className="text-xs text-zinc-400 mb-1.5">Techniques</p>
+                <div className="flex flex-wrap gap-1">
+                  {ad.analysis.techniques.map(t => (
+                    <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button onClick={onAnalyze} disabled={analyzing}
+            className="w-full py-2.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 text-sm font-medium hover:border-amber-400 hover:text-amber-500 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+            {analyzing ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Analyse...</> : '✦ Analyser le tunnel avec Claude'}
+          </button>
+        )}
+
+        {/* Chronologie */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Chronologie</p>
+          <div className="space-y-3">
+            <div className="flex gap-3 items-start">
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-600 mt-1 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  {startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+                <p className="text-xs text-zinc-400">Lancement</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 flex-shrink-0 animate-pulse" />
+              <div>
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Actif maintenant</p>
+                <p className="text-xs text-zinc-400">{ad.runDays} jours de diffusion</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Engagement */}
+        {ad.engagement && (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">
+              Engagement {ad.engagement.estimated && <span className="text-zinc-300 dark:text-zinc-600 font-normal normal-case">(estimé)</span>}
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { icon: '👁', label: 'Vues', value: ad.engagement.views },
+                { icon: '❤', label: 'Likes', value: ad.engagement.likes },
+                { icon: '💬', label: 'Comms', value: ad.engagement.comments },
+                { icon: '↗', label: 'Partages', value: ad.engagement.shares },
+              ].map(({ icon, label, value }) => (
+                <div key={label} className="rounded-lg border border-zinc-100 dark:border-zinc-800 p-2 text-center">
+                  <div className="text-base mb-0.5">{icon}</div>
+                  <div className="text-xs font-bold text-zinc-900 dark:text-white">{formatViews(value || 0)}</div>
+                  <div className="text-xs text-zinc-400">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transcription + Score + Version améliorée */}
+        <TranscriptionPanel
+          ad={ad}
+          onTranscribe={onTranscribe}
+          transcribing={transcribing}
+        />
+
+        {/* CTA: Generate VSL */}
+        {ad.analysis && (
+          <button onClick={onAdapt}
+            className="w-full py-3 rounded-xl bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">
+            ✦ Adapter à mon produit
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ScoreBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-2.5">
+      <p className="text-xs text-zinc-400 mb-1.5">{label}</p>
+      <div className="h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-1">
+        <div className="h-1.5 rounded-full transition-all" style={{ width: `${(value / max) * 100}%`, backgroundColor: color }} />
+      </div>
+      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{value}/{max}</p>
+    </div>
+  )
+}
