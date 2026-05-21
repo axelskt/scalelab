@@ -82,7 +82,7 @@ const TOOLS = [
   {
     href: '/vsl',
     icon: '✦',
-    label: 'VSL Pro',
+    label: 'VSL Generator',
     count: 'Exclusif',
     desc: 'Générez des scripts VSL + vidéos motion design avec l\'IA.',
     cta: 'Créer une VSL →',

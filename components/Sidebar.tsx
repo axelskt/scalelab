@@ -14,7 +14,7 @@ const TOOLS = [
   { href: '/workspace', icon: '□', label: 'Workspace' },
   { href: '/favorites', icon: '☆', label: 'Favoris' },
   { href: '/analyzer', icon: '◈', label: 'Analyseur' },
-  { href: '/vsl', icon: '✦', label: 'VSL Pro', highlight: true },
+  { href: '/vsl', icon: '✦', label: 'VSL Generator', highlight: true },
   { href: '/settings', icon: '⚙', label: 'Paramètres' },
 ]
 
@@ -27,9 +27,9 @@ export default function Sidebar() {
       <div className="h-14 flex items-center px-4 border-b border-zinc-200/60 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-            <span className="text-white text-xs font-black">V</span>
+            <span className="text-white text-xs font-black">S</span>
           </div>
-          <span className="font-bold text-sm text-zinc-900 dark:text-white tracking-tight">VSL Pro</span>
+          <span className="font-bold text-sm text-zinc-900 dark:text-white tracking-tight">ScaleLab</span>
         </Link>
       </div>
 
