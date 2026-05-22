@@ -110,12 +110,12 @@ export default function PlansPage() {
             const isFree = CURRENT_PLAN === 'free'
 
             return (
-              <div key={plan.id} className="relative rounded-2xl overflow-hidden"
+              <div key={plan.id} className="relative rounded-2xl"
                 style={{
                   border: plan.popular ? '2px solid #F97316' : '1px solid rgba(28,25,23,0.1)',
                   background: 'white',
                   boxShadow: plan.popular ? '0 8px 32px rgba(249,115,22,0.12)' : '0 2px 12px rgba(0,0,0,0.04)',
-                  marginTop: plan.popular ? '0' : '16px',
+                  marginTop: plan.popular ? '20px' : '36px',
                 }}>
 
                 {/* Popular badge */}
