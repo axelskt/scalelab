@@ -11,7 +11,7 @@ const REMOTION_PATH = path.join(process.cwd(), '..', 'remotion-demo')
 
 export async function POST(request: NextRequest) {
   try {
-    const { script, template = 'editorial' }: { script: VSLScript; template?: 'editorial' | 'dynamic' } = await request.json()
+    const { script, template = 'premium' }: { script: VSLScript; template?: 'premium' | 'editorial' | 'dynamic' } = await request.json()
 
     // Write the script JSON to the remotion project
     const scriptPath = path.join(REMOTION_PATH, 'src', 'script.json')
@@ -21,7 +21,10 @@ export async function POST(request: NextRequest) {
     await mkdir(path.join(REMOTION_PATH, 'out'), { recursive: true })
 
     // Select composition based on template
-    const composition = template === 'editorial' ? 'VSLEditorial' : 'VSLDynamic'
+    const composition =
+      template === 'premium'   ? 'VSLPremiumDark' :
+      template === 'editorial' ? 'VSLEditorial'   :
+                                 'VSLDynamic'
 
     // Trigger Remotion render
     const outputFile = `out/vsl-${Date.now()}.mp4`
