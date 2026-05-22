@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { Link2, Check, Copy, ArrowLeft, Sparkles, Globe, Tag, Users, Target, Shield, MessageSquare, TrendingUp, FileText, ChevronDown, ChevronUp, Mail, Lightbulb, Lock, Zap } from 'lucide-react'
 import Link from 'next/link'
 
@@ -63,9 +64,9 @@ export default function TunnelImportPage() {
   const [briefError, setBriefError] = useState<string | null>(null)
   const [expandedStep, setExpandedStep] = useState<number | null>(null)
 
-  // TODO: replace with real plan from DB/session
-  const userPlan = 'free' as 'free' | 'starter' | 'pro' | 'business'
-  const canGenerateBrief = userPlan === 'pro' || userPlan === 'business'
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as { plan?: string })?.plan ?? 'free') as 'free' | 'starter' | 'pro' | 'business' | 'student'
+  const canGenerateBrief = ['pro', 'business', 'student'].includes(userPlan)
 
   async function handleImport() {
     if (!url.trim()) return
