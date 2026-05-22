@@ -339,19 +339,23 @@ export default function AdsPage() {
           )}
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — fixed right drawer */}
         {selectedAd && (
-          <div className="w-96 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto flex-shrink-0">
-            <AdDetailPanel
-              ad={selectedAd}
-              onClose={() => setSelectedAd(null)}
-              onAnalyze={() => handleAnalyze(selectedAd)}
-              onTranscribe={() => handleTranscribe(selectedAd)}
-              analyzing={analyzingId === selectedAd.id}
-              transcribing={transcribingId === selectedAd.id}
-              onAdapt={() => { setAdaptModal(true); setAdaptedScript(null) }}
-            />
-          </div>
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setSelectedAd(null)} />
+            <div className="fixed right-0 top-0 bottom-0 z-50 overflow-y-auto"
+              style={{ width: 400, background: '#FFFBF7', borderLeft: '1px solid rgba(28,25,23,0.1)', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)' }}>
+              <AdDetailPanel
+                ad={selectedAd}
+                onClose={() => setSelectedAd(null)}
+                onAnalyze={() => handleAnalyze(selectedAd)}
+                onTranscribe={() => handleTranscribe(selectedAd)}
+                analyzing={analyzingId === selectedAd.id}
+                transcribing={transcribingId === selectedAd.id}
+                onAdapt={() => { setAdaptModal(true); setAdaptedScript(null) }}
+              />
+            </div>
+          </>
         )}
       </div>
 
@@ -482,59 +486,133 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
 }) {
   const src = SOURCE_BADGE[ad.source] ?? SOURCE_BADGE['facebook']
   const startDate = new Date(ad.startDate)
+  const [showFullCopy, setShowFullCopy] = useState(false)
+  const adText = ad.adText || ''
+  const shortText = adText.slice(0, 180)
+  const needsTruncation = adText.length > 180
+
+  // Detect builder from URL
+  const url = ad.adUrl || ''
+  const builder = url.includes('systeme') ? 'systeme.io' : url.includes('clickfunnels') ? 'clickfunnels' : url.includes('learnybox') ? 'learnybox' : null
 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900 z-10">
+      <div className="flex items-center justify-between px-5 py-3.5 sticky top-0 z-10"
+        style={{ background: '#FFFBF7', borderBottom: '1px solid rgba(28,25,23,0.08)' }}>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-100 dark:border-green-500/20">
+          <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(34,197,94,0.1)', color: '#16A34A', border: '1px solid rgba(34,197,94,0.2)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Actif
           </span>
-          <span className="text-sm font-semibold text-zinc-900 dark:text-white">Détail ad</span>
+          <span className="text-sm font-bold" style={{ color: '#1C1917' }}>Détail ad</span>
         </div>
-        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-1">✕</button>
+        <button onClick={onClose} className="p-1.5 rounded-lg transition-all"
+          style={{ color: 'rgba(28,25,23,0.4)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(28,25,23,0.06)'; e.currentTarget.style.color = '#1C1917' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(28,25,23,0.4)' }}>
+          ✕
+        </button>
       </div>
 
-      <div className="p-4 space-y-5">
+      <div className="p-5 space-y-5">
+        {/* Preview */}
+        {ad.thumbnailUrl && (
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(28,25,23,0.08)' }}>
+            <img src={ad.thumbnailUrl} alt="" className="w-full object-cover max-h-48" />
+          </div>
+        )}
+
         {/* Advertiser */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #F97316, #7C3AED)' }}>
               {ad.advertiser[0]}
             </div>
             <div>
-              <p className="text-sm font-bold text-zinc-900 dark:text-white">{ad.advertiser}</p>
-              <p className="text-xs text-zinc-400">{src.label}</p>
+              <p className="text-sm font-bold" style={{ color: '#1C1917' }}>{ad.advertiser}</p>
+              <p className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>{src.label}</p>
             </div>
           </div>
-          <button className="text-xs px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors">
+          <button className="text-xs px-3 py-1.5 rounded-full font-semibold transition-all"
+            style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316', border: '1px solid rgba(249,115,22,0.2)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.15)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(249,115,22,0.08)'}>
             ☆ Favori
           </button>
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: 'JOURS ACTIFS', value: `${ad.runDays}j`, color: 'text-zinc-900 dark:text-white' },
-            { label: 'LANGUE', value: `${LANG_FLAGS[ad.language || 'unknown']} ${(ad.language || 'N/A').toUpperCase()}`, color: 'text-zinc-700 dark:text-zinc-300' },
-            { label: 'NOTE VSL', value: ad.transcription ? `${ad.transcription.score.overall}/100` : '—', color: ad.transcription ? (ad.transcription.score.overall >= 75 ? 'text-green-600 dark:text-green-400' : 'text-amber-500') : 'text-zinc-400' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-3 text-center">
-              <p className="text-xs text-zinc-400 mb-1">{label}</p>
-              <p className={`text-sm font-bold ${color}`}>{value}</p>
+        {/* URL + Analyser */}
+        {ad.adUrl && (
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl"
+            style={{ background: 'rgba(28,25,23,0.03)', border: '1px solid rgba(28,25,23,0.07)' }}>
+            <span className="text-xs truncate flex-1 mr-2" style={{ color: 'rgba(28,25,23,0.45)' }}>{ad.adUrl}</span>
+            <a href={ad.adUrl} target="_blank" rel="noopener noreferrer"
+              className="text-xs font-semibold flex-shrink-0 transition-all" style={{ color: '#F97316' }}>
+              Analyser le tunnel ↗
+            </a>
+          </div>
+        )}
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-3 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+            <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Jours actifs</p>
+            <p className="text-2xl font-black" style={{ color: '#1C1917' }}>{ad.runDays}j</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#22C55E' }} />
+              <span className="text-xs" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10 }}>Evergreen</span>
             </div>
-          ))}
+          </div>
+          <div className="p-3 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+            <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tunnel</p>
+            {builder ? (
+              <span className="text-sm font-bold" style={{ color: '#1C1917' }}>{builder}</span>
+            ) : (
+              <span className="text-sm" style={{ color: 'rgba(28,25,23,0.3)' }}>—</span>
+            )}
+          </div>
+          <div className="p-3 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+            <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>CTA</p>
+            <span className="text-sm font-bold" style={{ color: '#1C1917' }}>{ad.analysis?.cta || 'Sign up'}</span>
+          </div>
+          <div className="p-3 rounded-xl relative overflow-hidden" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+            <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Portée totale (UE)</p>
+            <div className="flex items-center justify-between">
+              <span className="text-sm blur-sm select-none font-black" style={{ color: '#1C1917' }}>124K</span>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-lg" style={{ background: 'rgba(249,115,22,0.1)', color: '#F97316' }}>Upgrade</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dépense estimée */}
+        <div className="p-4 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+          <p className="text-xs font-bold mb-3" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dépense est.</p>
+          <div className="h-5 rounded-lg mb-2" style={{ background: 'rgba(28,25,23,0.06)' }} />
+          <div className="flex items-center gap-1.5">
+            <span style={{ color: 'rgba(28,25,23,0.3)', fontSize: 12 }}>$</span>
+            <span className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>Mettre à niveau pour voir</span>
+          </div>
         </div>
 
         {/* Ad copy */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(249,115,22,0.1)', color: '#F97316', border: '1px solid rgba(249,115,22,0.2)' }}>
               Ad copy
             </span>
           </div>
-          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">{ad.adText}</p>
+          <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(28,25,23,0.7)' }}>
+            {showFullCopy ? adText : shortText}{needsTruncation && !showFullCopy && '...'}
+          </p>
+          {needsTruncation && (
+            <button onClick={() => setShowFullCopy(v => !v)}
+              className="text-xs font-semibold mt-1.5 transition-all" style={{ color: '#F97316' }}>
+              {showFullCopy ? 'Voir moins' : 'Voir plus'}
+            </button>
+          )}
         </div>
 
         {/* Analysis */}
@@ -590,25 +668,36 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
 
         {/* Chronologie */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Chronologie</p>
+          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(28,25,23,0.3)', fontSize: 10 }}>Chronologie</p>
           <div className="space-y-3">
             <div className="flex gap-3 items-start">
-              <div className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-600 mt-1 flex-shrink-0" />
+              <div className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: 'rgba(28,25,23,0.2)' }} />
               <div>
-                <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                  {startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                <p className="text-xs font-semibold" style={{ color: '#1C1917' }}>
+                  {startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
-                <p className="text-xs text-zinc-400">Lancement</p>
+                <p className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>Lancement</p>
               </div>
             </div>
             <div className="flex gap-3 items-start">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 flex-shrink-0 animate-pulse" />
+              <div className="w-2 h-2 rounded-full mt-1 flex-shrink-0 animate-pulse" style={{ background: '#F97316' }} />
               <div>
-                <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Actif maintenant</p>
-                <p className="text-xs text-zinc-400">{ad.runDays} jours de diffusion</p>
+                <p className="text-xs font-semibold" style={{ color: '#F97316' }}>Actif maintenant</p>
+                <p className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>{ad.runDays} jours de diffusion</p>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Evolution portée — locked */}
+        <div className="p-4 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+          <p className="text-xs font-bold mb-3" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Évolution de la portée (UE)</p>
+          <div className="h-16 rounded-lg flex items-end gap-1 px-2 pb-1" style={{ background: 'rgba(28,25,23,0.04)' }}>
+            {[3,5,4,7,6,8,9,7,10,8,9,11].map((h, i) => (
+              <div key={i} className="flex-1 rounded-sm" style={{ height: `${h * 8}%`, background: 'rgba(28,25,23,0.1)' }} />
+            ))}
+          </div>
+          <p className="text-xs mt-2" style={{ color: 'rgba(28,25,23,0.35)' }}>Mettre à niveau pour voir l'évolution</p>
         </div>
 
         {/* Engagement */}
