@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Link2, Check, Copy, ArrowLeft, Sparkles, Globe, Tag, Users, Target, Shield, MessageSquare, TrendingUp, FileText, ChevronDown, ChevronUp, Mail, Lightbulb } from 'lucide-react'
+import { Link2, Check, Copy, ArrowLeft, Sparkles, Globe, Tag, Users, Target, Shield, MessageSquare, TrendingUp, FileText, ChevronDown, ChevronUp, Mail, Lightbulb, Lock, Zap } from 'lucide-react'
 import Link from 'next/link'
 
 interface TunnelAnalysis {
@@ -62,6 +62,10 @@ export default function TunnelImportPage() {
   const [brief, setBrief] = useState<FunnelBrief | null>(null)
   const [briefError, setBriefError] = useState<string | null>(null)
   const [expandedStep, setExpandedStep] = useState<number | null>(null)
+
+  // TODO: replace with real plan from DB/session
+  const userPlan = 'free' as 'free' | 'starter' | 'pro' | 'business'
+  const canGenerateBrief = userPlan === 'pro' || userPlan === 'business'
 
   async function handleImport() {
     if (!url.trim()) return
@@ -282,33 +286,76 @@ export default function TunnelImportPage() {
 
             {/* Systeme.io Brief CTA */}
             {!brief && (
-              <div className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+              <div className="p-5 rounded-2xl relative overflow-hidden"
+                style={{ background: 'white', border: `1px solid ${canGenerateBrief ? 'rgba(28,25,23,0.08)' : 'rgba(249,115,22,0.2)'}` }}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.12)' }}>
                     <span className="text-base">🔗</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-black" style={{ color: '#1C1917' }}>Importer dans systeme.io</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-black" style={{ color: '#1C1917' }}>Importer dans systeme.io</p>
+                      {!canGenerateBrief && (
+                        <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
+                          style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white', fontSize: 10 }}>
+                          <Zap size={9} /> Pro
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs" style={{ color: 'rgba(28,25,23,0.45)' }}>Génère un brief complet pour recréer ce tunnel</p>
                   </div>
                 </div>
-                {briefError && (
-                  <p className="text-xs mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(220,38,38,0.06)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.12)' }}>
-                    {briefError}
-                  </p>
+
+                {canGenerateBrief ? (
+                  <>
+                    {briefError && (
+                      <p className="text-xs mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(220,38,38,0.06)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.12)' }}>
+                        {briefError}
+                      </p>
+                    )}
+                    <button
+                      onClick={generateBrief}
+                      disabled={generatingBrief}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                      style={{ background: generatingBrief ? 'rgba(249,115,22,0.5)' : 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: generatingBrief ? 'none' : '0 4px 14px rgba(249,115,22,0.25)' }}>
+                      {generatingBrief ? (
+                        <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Génération du brief...</>
+                      ) : (
+                        <><FileText size={14} /> Générer le brief systeme.io</>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  /* Paywall overlay */
+                  <div className="relative">
+                    {/* Blurred fake preview */}
+                    <div className="pointer-events-none select-none mb-3 space-y-2" style={{ filter: 'blur(4px)', opacity: 0.5 }}>
+                      {[{ w: '75%' }, { w: '55%' }, { w: '65%' }].map((l, i) => (
+                        <div key={i} className="h-3 rounded-full" style={{ width: l.w, background: 'rgba(28,25,23,0.08)' }} />
+                      ))}
+                      <div className="flex gap-2 pt-1">
+                        {['Étape 1', 'Étape 2', 'Étape 3'].map(s => (
+                          <div key={s} className="flex-1 h-8 rounded-lg" style={{ background: 'rgba(249,115,22,0.08)' }} />
+                        ))}
+                      </div>
+                    </div>
+                    {/* Lock CTA */}
+                    <div className="flex items-center gap-3 p-3.5 rounded-xl"
+                      style={{ background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)' }}>
+                      <Lock size={16} style={{ color: '#F97316', flexShrink: 0 }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold" style={{ color: '#1C1917' }}>Réservé aux plans Pro & Business</p>
+                        <p className="text-xs" style={{ color: 'rgba(28,25,23,0.45)' }}>Étapes du tunnel, séquence email, conseils systeme.io</p>
+                      </div>
+                      <Link href="/plans"
+                        className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all"
+                        style={{ background: 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: '0 3px 10px rgba(249,115,22,0.3)' }}>
+                        Upgrade
+                      </Link>
+                    </div>
+                  </div>
                 )}
-                <button
-                  onClick={generateBrief}
-                  disabled={generatingBrief}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                  style={{ background: generatingBrief ? 'rgba(249,115,22,0.5)' : 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: generatingBrief ? 'none' : '0 4px 14px rgba(249,115,22,0.25)' }}>
-                  {generatingBrief ? (
-                    <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Génération du brief...</>
-                  ) : (
-                    <><FileText size={14} /> Générer le brief systeme.io</>
-                  )}
-                </button>
               </div>
             )}
 
