@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { Transcription, VSLScoreBreakdown, SupportedLanguage } from './ads-db'
 
-const client = new Anthropic()
+const client = new Anthropic({ timeout: 120_000, maxRetries: 2 })
 
 // ─── Score une VSL à partir de son texte ─────────────────────────────────────
 export async function scoreVSL(text: string, language: SupportedLanguage): Promise<VSLScoreBreakdown> {

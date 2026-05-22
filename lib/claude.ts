@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { ProductBrief, VSLScript, Scene, SceneType, AnimationType } from './types'
 
-const client = new Anthropic()
+const client = new Anthropic({ timeout: 120_000, maxRetries: 2 })
 
 function buildSystemPrompt(): string {
   return `Tu es un expert en copywriting VSL (Video Sales Letter) et motion design.

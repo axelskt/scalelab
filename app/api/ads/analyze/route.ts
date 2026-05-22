@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeAd } from '@/lib/ad-analyzer'
 import { loadAds, saveAds, calculateScore } from '@/lib/ads-db'
 
+export const maxDuration = 120
+
 export async function POST(request: NextRequest) {
   try {
     const { adId } = await request.json()

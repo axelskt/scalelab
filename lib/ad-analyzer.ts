@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { ScrapedAd, AdAnalysis } from './ads-db'
 import { VSLPattern } from './types'
 
-const client = new Anthropic()
+const client = new Anthropic({ timeout: 120_000, maxRetries: 2 })
 
 export async function analyzeAd(ad: ScrapedAd): Promise<AdAnalysis> {
   const response = await client.messages.create({

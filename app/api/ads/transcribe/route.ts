@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { loadAds, saveAds, calculateScore, detectLanguage, estimateEngagement } from '@/lib/ads-db'
 import { generateTranscriptionFromAdText } from '@/lib/transcription'
 
+export const maxDuration = 120
+
 export async function POST(request: NextRequest) {
   try {
     const { adId } = await request.json()
