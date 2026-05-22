@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       detected_niche: (ad.analysis as any)?.niche,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       offer: (ad.analysis as any)?.offer,
-      analysis: ad.analysis as Record<string, unknown>,
+      analysis: ad.analysis as unknown as Record<string, unknown>,
       score,
       scraped_at: ad.scrapedAt,
     })
