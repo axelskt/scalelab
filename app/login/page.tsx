@@ -24,8 +24,12 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/landing" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <span className="text-white font-black text-base">S</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30"
+              style={{ background: '#F97316' }}>
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+                <polyline points="6,22 12,15 18,17 26,8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="26" cy="8" r="3" fill="white"/>
+              </svg>
             </div>
             <span className="font-black text-xl text-white tracking-tight">ScaleLab</span>
           </Link>

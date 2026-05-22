@@ -53,8 +53,11 @@ export default function Sidebar() {
       <div className="h-14 flex items-center px-5" style={{ borderBottom: '1px solid rgba(28,25,23,0.08)' }}>
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: '0 0 12px rgba(249,115,22,0.3)' }}>
-            <span className="text-white font-black text-xs">S</span>
+            style={{ background: '#F97316', boxShadow: '0 0 12px rgba(249,115,22,0.3)' }}>
+            <svg width="17" height="17" viewBox="0 0 32 32" fill="none">
+              <polyline points="6,22 12,15 18,17 26,8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="26" cy="8" r="3" fill="white"/>
+            </svg>
           </div>
           <span className="font-black text-sm tracking-tight" style={{ color: '#1C1917' }}>ScaleLab</span>
         </Link>
