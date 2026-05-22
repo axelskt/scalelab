@@ -3,13 +3,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useRef, useEffect } from 'react'
+import React from 'react'
 import {
   Home, BarChart2, Users, GitBranch, Leaf,
   Zap, ScanSearch, Star, LayoutDashboard, Settings,
   LogOut, CreditCard, Share2, ChevronRight, Sparkles
 } from 'lucide-react'
 
-const NAV = [
+const NAV: { href: string; label: string; icon: React.ElementType; badge?: string; soon?: boolean }[] = [
   { href: '/', label: 'Accueil', icon: Home },
   { href: '/ads', label: 'Ads', badge: '1.9M+', icon: BarChart2 },
   { href: '/creators', label: 'Créateurs', badge: '20K+', icon: Users },
@@ -17,7 +18,7 @@ const NAV = [
   { href: '/organic', label: 'Organique', icon: Leaf },
 ]
 
-const TOOLS = [
+const TOOLS: { href: string; label: string; icon: React.ElementType; accent?: boolean }[] = [
   { href: '/vsl', label: 'VSL Generator', accent: true, icon: Zap },
   { href: '/analyzer', label: 'Analyseur', icon: ScanSearch },
   { href: '/favorites', label: 'Favoris', icon: Star },
