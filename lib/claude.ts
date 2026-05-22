@@ -16,7 +16,13 @@ Règles absolues :
 - 30 frames = 1 seconde
 
 Types de scènes disponibles : hook, problem, agitate, solution, proof, cta, story, features, testimonials, offer
-Animations disponibles : glitch, slide, pop, counter, stagger, zoom
+Animations disponibles : glitch, slide, pop, counter, stagger, zoom, split, notification, float, inline
+
+Nouvelles animations (préférer sur les bons contextes) :
+- split : pour les scènes features/solution qui ont du texte + UI à montrer côte à côte
+- notification : pour les scènes features qui montrent un produit en action avec des alertes/statuts
+- float : pour les scènes proof/testimonials avec plusieurs profils clients (social proof)
+- inline : pour les scènes hook/agitate avec une phrase où UN mot est mis en valeur
 
 Tu réponds UNIQUEMENT avec du JSON valide, sans markdown, sans explication.`
 }
@@ -77,7 +83,7 @@ Génère exactement ce JSON (sans markdown) :
         "counterValue": "39345",
         "style": "dramatic|proof|energetic|calm|urgent"
       },
-      "animation": "glitch|slide|pop|counter|stagger|zoom"
+      "animation": "glitch|slide|pop|counter|stagger|zoom|split|notification|float|inline"
     }
   ],
   "totalFrames": ${totalFrames},
@@ -85,9 +91,12 @@ Génère exactement ce JSON (sans markdown) :
 }
 
 La somme des durationFrames doit être égale à ${totalFrames}.
-Pour la scène hook, utilise l'animation "glitch" ou "stagger".
+Pour la scène hook, utilise l'animation "glitch", "stagger" ou "inline".
 Pour les métriques/chiffres, utilise l'animation "counter".
+Pour la scène features avec produit à montrer, utilise "split" ou "notification".
+Pour la scène proof/testimonials avec plusieurs clients, utilise "float".
 Pour la scène cta, utilise le style "urgent".
+Quand tu utilises "inline", mets le mot clé entre [crochets] dans le headline (ex: "La [seule] solution qui marche").
 Génère entre 5 et 8 scènes selon la durée.`
 }
 

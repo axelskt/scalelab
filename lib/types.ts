@@ -1,6 +1,6 @@
 export type VSLPattern = 'PAS' | 'AIDA' | 'PASTOR' | 'BAB' | 'Story'
 export type SceneType = 'hook' | 'problem' | 'agitate' | 'solution' | 'proof' | 'cta' | 'story' | 'features' | 'testimonials' | 'offer'
-export type AnimationType = 'glitch' | 'slide' | 'pop' | 'counter' | 'stagger' | 'zoom'
+export type AnimationType = 'glitch' | 'slide' | 'pop' | 'counter' | 'stagger' | 'zoom' | 'split' | 'notification' | 'float' | 'inline'
 export type SceneStyle = 'dramatic' | 'proof' | 'energetic' | 'calm' | 'urgent'
 export type VideoFormat = '16:9' | '9:16' | '1:1'
 
