@@ -30,6 +30,7 @@ export default function VSLPro() {
   const [error, setError] = useState<string | null>(null)
   const [renderOutput, setRenderOutput] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('brief')
+  const [template, setTemplate] = useState<'editorial' | 'dynamic'>('editorial')
 
   const handlePatternChange = (pattern: VSLPattern) => {
     setBrief((b) => ({ ...b, pattern }))
@@ -65,7 +66,7 @@ export default function VSLPro() {
       const res = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ script }),
+        body: JSON.stringify({ script, template }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur de rendu')
@@ -113,10 +114,29 @@ export default function VSLPro() {
           ))}
         </div>
 
+        {/* Template selector */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <span className="text-xs text-zinc-600 mr-1">Style :</span>
+          {([
+            { key: 'editorial', label: 'Éditorial', desc: 'Crème · Serif · Zecom' },
+            { key: 'dynamic', label: 'Dynamique', desc: 'Dark · Glitch · Impact' },
+          ] as const).map(t => (
+            <button key={t.key} title={t.desc}
+              onClick={() => setTemplate(t.key)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                template === t.key
+                  ? t.key === 'editorial' ? 'bg-amber-100 text-amber-800' : 'bg-violet-600 text-white'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {script && (
-          <div className="ml-auto flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 ml-4">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            Script prêt · {script.scenes.length} scènes · {script.meta.pattern}
+            {script.scenes.length} scènes · {script.meta.pattern}
           </div>
         )}
       </header>
