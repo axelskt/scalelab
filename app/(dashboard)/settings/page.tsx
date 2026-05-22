@@ -1,12 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { User, Shield, Users, EyeOff, Camera, ArrowUpRight } from 'lucide-react'
+import { User, Shield, Users, EyeOff, Camera, ArrowUpRight, Plug, Check, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
   { id: 'security', label: 'Sécurité', icon: Shield },
   { id: 'team', label: 'Équipe', icon: Users },
+  { id: 'integrations', label: 'Intégrations', icon: Plug },
   { id: 'ignored', label: 'Créateurs ignorés', icon: EyeOff },
 ]
 
@@ -58,6 +60,7 @@ export default function SettingsPage() {
             )}
             {tab === 'security' && <SecurityTab />}
             {tab === 'team' && <TeamTab />}
+            {tab === 'integrations' && <IntegrationsTab />}
             {tab === 'ignored' && <IgnoredTab />}
           </div>
         </div>
@@ -204,6 +207,56 @@ function TeamTab() {
           <ArrowUpRight size={13} />
           Passer au plan Pro ou Business pour inviter des membres
         </button>
+      </div>
+    </Section>
+  )
+}
+
+function IntegrationsTab() {
+  const integrations = [
+    {
+      id: 'systeme',
+      name: 'Systeme.io',
+      desc: 'Synchronise tes contacts et génère des briefs de tunnel.',
+      emoji: '🔗',
+      href: '/integrations/systeme',
+      connected: false,
+    },
+  ]
+
+  return (
+    <Section title="Intégrations" desc="Connecte tes outils externes pour automatiser tes workflows.">
+      <div className="space-y-3">
+        {integrations.map(int => (
+          <div key={int.id} className="flex items-center justify-between px-4 py-4 rounded-xl"
+            style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.12)' }}>
+                <span className="text-lg">{int.emoji}</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold" style={{ color: '#1C1917' }}>{int.name}</p>
+                  {int.connected && (
+                    <span className="flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-full"
+                      style={{ background: 'rgba(34,197,94,0.1)', color: '#16A34A' }}>
+                      <Check size={10} /> Connecté
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(28,25,23,0.45)' }}>{int.desc}</p>
+              </div>
+            </div>
+            <Link href={int.href}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex-shrink-0"
+              style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316', border: '1px solid rgba(249,115,22,0.15)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.15)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.08)')}>
+              <ExternalLink size={11} /> Configurer
+            </Link>
+          </div>
+        ))}
       </div>
     </Section>
   )

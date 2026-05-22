@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Link2, Search, Check, Copy, ArrowLeft, Sparkles, Globe, Tag, Users, Target, Shield, MessageSquare, TrendingUp } from 'lucide-react'
+import { Link2, Check, Copy, ArrowLeft, Sparkles, Globe, Tag, Users, Target, Shield, MessageSquare, TrendingUp, FileText, ChevronDown, ChevronUp, Mail, Lightbulb } from 'lucide-react'
 import Link from 'next/link'
 
 interface TunnelAnalysis {
@@ -26,6 +26,28 @@ interface TunnelAnalysis {
   scrapedAt: string
 }
 
+interface FunnelBrief {
+  funnelName: string
+  funnelType: string
+  steps: {
+    stepName: string
+    stepType: string
+    headline: string
+    subheadline: string
+    bodyContent: string
+    cta: string
+    colorTheme: string
+  }[]
+  emailSequence: {
+    delay: number
+    subject: string
+    preview: string
+    purpose: string
+  }[]
+  recommendedPrice: string
+  systemeioTips: string[]
+}
+
 const COPY_COLORS: Record<string, string> = {
   PAS: '#FF3B30', AIDA: '#7B61FF', PASTOR: '#AF52DE', BAB: '#F5A623', Story: '#00C7BE',
 }
@@ -36,6 +58,10 @@ export default function TunnelImportPage() {
   const [result, setResult] = useState<TunnelAnalysis | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [generatingBrief, setGeneratingBrief] = useState(false)
+  const [brief, setBrief] = useState<FunnelBrief | null>(null)
+  const [briefError, setBriefError] = useState<string | null>(null)
+  const [expandedStep, setExpandedStep] = useState<number | null>(null)
 
   async function handleImport() {
     if (!url.trim()) return
@@ -63,6 +89,27 @@ export default function TunnelImportPage() {
     navigator.clipboard.writeText(text)
     setCopied(key)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  async function generateBrief() {
+    if (!result) return
+    setGeneratingBrief(true)
+    setBriefError(null)
+    setBrief(null)
+    try {
+      const res = await fetch('/api/tunnel-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis: result.analysis, url: result.url }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur')
+      setBrief(data)
+    } catch (e) {
+      setBriefError(e instanceof Error ? e.message : 'Erreur inconnue')
+    } finally {
+      setGeneratingBrief(false)
+    }
   }
 
   return (
@@ -232,6 +279,166 @@ export default function TunnelImportPage() {
                 <Sparkles size={14} /> Générer une VSL
               </Link>
             </div>
+
+            {/* Systeme.io Brief CTA */}
+            {!brief && (
+              <div className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.12)' }}>
+                    <span className="text-base">🔗</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black" style={{ color: '#1C1917' }}>Importer dans systeme.io</p>
+                    <p className="text-xs" style={{ color: 'rgba(28,25,23,0.45)' }}>Génère un brief complet pour recréer ce tunnel</p>
+                  </div>
+                </div>
+                {briefError && (
+                  <p className="text-xs mb-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(220,38,38,0.06)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.12)' }}>
+                    {briefError}
+                  </p>
+                )}
+                <button
+                  onClick={generateBrief}
+                  disabled={generatingBrief}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                  style={{ background: generatingBrief ? 'rgba(249,115,22,0.5)' : 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: generatingBrief ? 'none' : '0 4px 14px rgba(249,115,22,0.25)' }}>
+                  {generatingBrief ? (
+                    <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Génération du brief...</>
+                  ) : (
+                    <><FileText size={14} /> Générer le brief systeme.io</>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Brief result */}
+            {brief && (
+              <div className="space-y-4">
+                {/* Brief header */}
+                <div className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-base">🔗</span>
+                        <h3 className="text-base font-black" style={{ color: '#1C1917' }}>{brief.funnelName}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold capitalize"
+                          style={{ background: 'rgba(249,115,22,0.1)', color: '#F97316' }}>{brief.funnelType}</span>
+                        <span className="text-xs font-bold" style={{ color: '#1C1917' }}>{brief.recommendedPrice}€</span>
+                        <span className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>recommandé</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copy(JSON.stringify(brief, null, 2), 'brief')}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition-all"
+                      style={{ background: 'rgba(28,25,23,0.05)', color: '#1C1917', border: '1px solid rgba(28,25,23,0.1)' }}>
+                      {copied === 'brief' ? <><Check size={11} /> Copié</> : <><Copy size={11} /> Copier</>}
+                    </button>
+                  </div>
+
+                  {/* Steps */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10 }}>Étapes du tunnel</p>
+                    {brief.steps.map((step, i) => (
+                      <div key={i} className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(28,25,23,0.07)' }}>
+                        <button
+                          onClick={() => setExpandedStep(expandedStep === i ? null : i)}
+                          className="w-full flex items-center justify-between px-4 py-3 text-left transition-all"
+                          style={{ background: expandedStep === i ? 'rgba(249,115,22,0.04)' : 'rgba(28,25,23,0.01)' }}>
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                              style={{ background: step.colorTheme || '#F97316' }}>{i + 1}</span>
+                            <div>
+                              <p className="text-xs font-bold" style={{ color: '#1C1917' }}>{step.stepName}</p>
+                              <p className="text-xs" style={{ color: 'rgba(28,25,23,0.4)', fontSize: 10 }}>{step.stepType}</p>
+                            </div>
+                          </div>
+                          {expandedStep === i ? <ChevronUp size={13} style={{ color: 'rgba(28,25,23,0.35)' }} /> : <ChevronDown size={13} style={{ color: 'rgba(28,25,23,0.35)' }} />}
+                        </button>
+                        {expandedStep === i && (
+                          <div className="px-4 pb-4 space-y-3" style={{ borderTop: '1px solid rgba(28,25,23,0.06)', paddingTop: 12 }}>
+                            <div>
+                              <p className="text-xs font-semibold mb-0.5" style={{ color: 'rgba(28,25,23,0.4)', fontSize: 10 }}>TITRE</p>
+                              <p className="text-sm font-bold" style={{ color: '#1C1917' }}>{step.headline}</p>
+                            </div>
+                            {step.subheadline && (
+                              <div>
+                                <p className="text-xs font-semibold mb-0.5" style={{ color: 'rgba(28,25,23,0.4)', fontSize: 10 }}>SOUS-TITRE</p>
+                                <p className="text-xs" style={{ color: 'rgba(28,25,23,0.6)' }}>{step.subheadline}</p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs font-semibold mb-0.5" style={{ color: 'rgba(28,25,23,0.4)', fontSize: 10 }}>COPY</p>
+                              <p className="text-xs leading-relaxed" style={{ color: 'rgba(28,25,23,0.6)' }}>{step.bodyContent}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-3 py-1 rounded-lg font-bold text-white"
+                                style={{ background: step.colorTheme || '#F97316' }}>{step.cta}</span>
+                              <span className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>bouton CTA</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Email sequence */}
+                {brief.emailSequence?.length > 0 && (
+                  <div className="p-5 rounded-2xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Mail size={13} style={{ color: '#F97316' }} />
+                      <p className="text-sm font-black" style={{ color: '#1C1917' }}>Séquence email</p>
+                    </div>
+                    <div className="space-y-3">
+                      {brief.emailSequence.map((email, i) => (
+                        <div key={i} className="flex gap-3">
+                          <div className="flex flex-col items-center flex-shrink-0">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                              style={{ background: 'rgba(249,115,22,0.1)', color: '#F97316' }}>J{email.delay}</div>
+                            {i < brief.emailSequence.length - 1 && (
+                              <div className="w-px flex-1 my-1" style={{ background: 'rgba(28,25,23,0.08)', minHeight: 12 }} />
+                            )}
+                          </div>
+                          <div className="flex-1 pb-3">
+                            <p className="text-xs font-bold" style={{ color: '#1C1917' }}>{email.subject}</p>
+                            <p className="text-xs mt-0.5" style={{ color: 'rgba(28,25,23,0.5)' }}>{email.preview}</p>
+                            <p className="text-xs mt-1 italic" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10 }}>{email.purpose}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Systeme.io tips */}
+                {brief.systemeioTips?.length > 0 && (
+                  <div className="p-4 rounded-xl" style={{ background: 'rgba(249,115,22,0.04)', border: '1px solid rgba(249,115,22,0.12)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Lightbulb size={13} style={{ color: '#F97316' }} />
+                      <p className="text-xs font-black" style={{ color: '#1C1917' }}>Conseils systeme.io</p>
+                    </div>
+                    <ul className="space-y-2">
+                      {brief.systemeioTips.map((tip, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs" style={{ color: 'rgba(28,25,23,0.65)' }}>
+                          <span className="text-orange-400 font-bold flex-shrink-0 mt-0.5">→</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Reset */}
+                <button onClick={() => { setBrief(null); setBriefError(null) }}
+                  className="w-full py-2.5 rounded-xl text-xs font-medium transition-all"
+                  style={{ background: 'rgba(28,25,23,0.04)', color: 'rgba(28,25,23,0.45)', border: '1px solid rgba(28,25,23,0.08)' }}>
+                  Regénérer le brief
+                </button>
+              </div>
+            )}
 
           </div>
         )}
