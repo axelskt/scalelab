@@ -1,7 +1,16 @@
 /**
- * Facebook Ad Library scraper — fetch-based (no browser needed)
- * Fonctionne en serverless (Vercel, GitHub Actions)
- * Cible : infopreneurs FR (formations, coaching, SaaS, digital)
+ * Facebook Ad Library — Meta Graph API officielle (v19)
+ * Endpoint : https://graph.facebook.com/v19.0/ads_archive
+ * Nécessite META_ACCESS_TOKEN (User Token avec ads_read)
+ *
+ * Comment obtenir le token :
+ * 1. Va sur https://developers.facebook.com/tools/explorer
+ * 2. Sélectionne ton app (ou "Graph API Explorer")
+ * 3. Ajoute la permission "ads_read"
+ * 4. Clique "Generate Access Token"
+ * 5. Copie le token → Vercel env var META_ACCESS_TOKEN
+ *
+ * Fonctionne en serverless (Vercel, GitHub Actions) — pas de browser
  */
 
 import { ScrapedAd, generateId, calculateScore, detectLanguage } from './ads-db'
@@ -71,102 +80,113 @@ function detectPrice(text: string): string {
   return 'Non mentionné'
 }
 
-// ─── Scraper principal ────────────────────────────────────────────────────────
+// ─── Meta Ads Library API officielle (Graph API v19) ─────────────────────────
+// Requiert META_ACCESS_TOKEN dans les env vars
+
+const META_API_VERSION = 'v19.0'
+const META_FIELDS = [
+  'id',
+  'page_name',
+  'page_id',
+  'ad_snapshot_url',
+  'ad_creative_bodies',
+  'ad_creative_link_captions',
+  'ad_creative_link_titles',
+  'ad_delivery_start_time',
+  'ad_delivery_stop_time',
+  'impressions',
+  'spend',
+  'currency',
+  'publisher_platforms',
+  'languages',
+].join(',')
 
 export async function scrapeFBAdLibraryFetch(
   keyword: string,
   country = 'FR',
   limit = 30
 ): Promise<ScrapedAd[]> {
+  const accessToken = process.env.META_ACCESS_TOKEN
+  if (!accessToken) {
+    console.warn('[FB Meta API] META_ACCESS_TOKEN manquant — scraping désactivé')
+    return []
+  }
+
   const ads: ScrapedAd[] = []
 
   try {
-    // Endpoint interne de la bibliothèque de publicités Facebook
     const params = new URLSearchParams({
-      q: keyword,
-      count: String(limit),
-      active_status: 'active',
-      ad_type: 'all',
-      'countries[0]': country,
-      media_type: 'all',
-      search_type: 'keyword_unordered',
-      source: 'nav-header',
+      access_token: accessToken,
+      search_terms: keyword,
+      ad_reached_countries: JSON.stringify([country]),
+      ad_active_status: 'ACTIVE',
+      ad_type: 'ALL',
+      fields: META_FIELDS,
+      limit: String(Math.min(limit, 50)),
     })
 
-    const res = await fetch(
-      `https://www.facebook.com/ads/library/async/search_ads/?${params}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'application/json, text/javascript, */*; q=0.01',
-          'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Referer': `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${country}&q=${encodeURIComponent(keyword)}&search_type=keyword_unordered&media_type=video`,
-          'Sec-Fetch-Site': 'same-origin',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Dest': 'empty',
-          'Cache-Control': 'no-cache',
-        },
-      }
-    )
+    const url = `https://graph.facebook.com/${META_API_VERSION}/ads_archive?${params}`
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+    })
 
-    if (!res.ok) throw new Error(`FB fetch ${res.status}`)
+    if (!res.ok) {
+      const errText = await res.text()
+      throw new Error(`Meta API ${res.status}: ${errText.slice(0, 200)}`)
+    }
 
-    const text = await res.text()
-    const cleaned = text.replace(/^for\s*\(;;\);?/, '').trim()
-    const data = JSON.parse(cleaned)
+    const data = await res.json() as {
+      data?: Record<string, unknown>[]
+      error?: { message: string }
+    }
 
-    // La réponse contient les résultats dans payload.results ou directement
-    const results: Record<string, unknown>[] =
-      (data?.payload?.results as Record<string, unknown>[]) ||
-      (data?.results as Record<string, unknown>[]) ||
-      []
+    if (data.error) throw new Error(`Meta API error: ${data.error.message}`)
+
+    const results = data.data || []
 
     for (const item of results.slice(0, limit)) {
       try {
-        const snapshot = (item.snapshot as Record<string, unknown>) || {}
-        const body = (snapshot.body as string) || (item.ad_creative_bodies as string) || ''
-        const title = (snapshot.title as string) || ''
-        const pageName = (item.pageName as string) || (item.page_name as string) || 'Annonceur'
-        const pageUrl = (item.pageProfileUri as string) || `https://facebook.com/${item.pageId}`
-        const startTimestamp = (item.startDate as number) || 0
-        const runDays = startTimestamp ? daysBetween(startTimestamp) : Math.floor(Math.random() * 45) + 5
-        const linkUrl = (snapshot.link_url as string) || ''
-        const images = (snapshot.images as { original_image_url: string }[]) || []
-        const videos = (snapshot.videos as { video_preview_image_url: string }[]) || []
-        const thumbnail = videos[0]?.video_preview_image_url || images[0]?.original_image_url || ''
+        const bodies = (item.ad_creative_bodies as string[]) || []
+        const titles = (item.ad_creative_link_titles as string[]) || []
+        const captions = (item.ad_creative_link_captions as string[]) || []
+        const pageName = (item.page_name as string) || 'Annonceur'
+        const pageId = item.page_id as string
+        const pageUrl = pageId ? `https://facebook.com/${pageId}` : ''
+        const snapshotUrl = (item.ad_snapshot_url as string) || ''
+        const startDateRaw = (item.ad_delivery_start_time as string) || ''
+        const startDate = startDateRaw ? startDateRaw.split('T')[0] : new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+        const runDays = startDate ? Math.round((Date.now() - new Date(startDate).getTime()) / 86400000) : 30
 
-        const adText = [title, body].filter(Boolean).join('\n').trim()
+        // Construire le texte de la pub
+        const adText = [...bodies, ...titles, ...captions].filter(Boolean).join('\n').trim()
         if (!adText || adText.length < 20) continue
         if (!isInfopreneur(adText)) continue
 
         const niche = detectNiche(adText)
         const productType = detectProductType(adText)
         const price = detectPrice(adText)
+        const lang = detectLanguage(adText)
 
-        const id = generateId('facebook', pageName, String(startTimestamp || Date.now()))
+        const id = generateId('facebook', pageName, startDate || Date.now().toString())
+
         const ad: ScrapedAd = {
           id,
           source: 'facebook',
           advertiser: pageName,
           advertiserPage: pageUrl,
-          language: detectLanguage(adText),
+          language: lang,
           country,
-          startDate: startTimestamp
-            ? new Date(startTimestamp * 1000).toISOString().split('T')[0]
-            : new Date(Date.now() - runDays * 86400000).toISOString().split('T')[0],
+          startDate,
           runDays,
           adText,
-          thumbnailUrl: thumbnail,
-          adUrl: linkUrl || pageUrl,
+          adUrl: snapshotUrl || pageUrl,
           niche: [niche],
           keywords: [keyword],
           scrapedAt: new Date().toISOString(),
           score: 0,
-          // Pre-fill analysis fields we can detect statically
           analysis: {
             pattern: 'PAS',
-            hook: adText.split('\n')[0].slice(0, 100),
+            hook: adText.split('\n')[0].slice(0, 120),
             mainPain: '',
             solution: '',
             offer: adText.slice(0, 200),
@@ -176,8 +196,8 @@ export async function scrapeFBAdLibraryFetch(
             cta: '',
             techniques: [],
             emotionalTriggers: [],
-            urgencyLevel: adText.toLowerCase().includes('limité') || adText.toLowerCase().includes('seulement') ? 8 : 5,
-            socialProofLevel: adText.match(/\d+\s*(personnes|étudiants|clients|membres)/) ? 7 : 3,
+            urgencyLevel: adText.toLowerCase().match(/limité|seulement|aujourd'hui|ce soir|dernier/) ? 8 : 5,
+            socialProofLevel: adText.match(/\d+\s*(personnes|étudiants|clients|membres|inscrits)/) ? 7 : 3,
             overallScore: 0,
             summary: '',
           },
@@ -185,11 +205,11 @@ export async function scrapeFBAdLibraryFetch(
         ad.score = calculateScore(ad)
         ads.push(ad)
       } catch (_) {
-        // Skip malformed entries
+        // skip
       }
     }
   } catch (err) {
-    console.error(`[FB Scraper] keyword="${keyword}":`, err)
+    console.error(`[FB Meta API] keyword="${keyword}":`, err)
   }
 
   return ads
