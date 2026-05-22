@@ -63,6 +63,9 @@ export interface AdAnalysis {
   mainPain: string
   solution: string
   offer: string
+  productType: string   // ex: "Formation en ligne", "Coaching 1:1", "SaaS", "Ebook", "Masterclass"
+  price: string         // ex: "497€", "Gratuit", "97€/mois", "Non détecté"
+  niche: string         // ex: "Marketing digital", "Finance", "Fitness"
   cta: string
   techniques: string[]
   emotionalTriggers: string[]

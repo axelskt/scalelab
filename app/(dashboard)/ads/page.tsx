@@ -555,6 +555,42 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
           </div>
         )}
 
+        {/* Offre détectée — affiché si analyse dispo */}
+        {ad.analysis && (
+          <div className="p-4 rounded-2xl" style={{ background: 'rgba(249,115,22,0.04)', border: '1px solid rgba(249,115,22,0.15)' }}>
+            <p className="text-xs font-bold mb-3" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>🎯 Offre détectée</p>
+            <div className="space-y-2.5">
+              {/* Prix + Type */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {ad.analysis.price && ad.analysis.price !== 'Non mentionné' && (
+                  <span className="text-sm font-black px-3 py-1 rounded-xl"
+                    style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white' }}>
+                    {ad.analysis.price}
+                  </span>
+                )}
+                {ad.analysis.productType && (
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-xl"
+                    style={{ background: 'rgba(28,25,23,0.06)', color: '#1C1917', border: '1px solid rgba(28,25,23,0.1)' }}>
+                    {ad.analysis.productType}
+                  </span>
+                )}
+                {ad.analysis.niche && (
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-xl"
+                    style={{ background: 'rgba(124,58,237,0.08)', color: '#7C3AED', border: '1px solid rgba(124,58,237,0.15)' }}>
+                    {ad.analysis.niche}
+                  </span>
+                )}
+              </div>
+              {/* Description offre */}
+              {ad.analysis.offer && (
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(28,25,23,0.65)' }}>
+                  {ad.analysis.offer}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-2">
           <div className="p-3 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
@@ -575,7 +611,7 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
           </div>
           <div className="p-3 rounded-xl" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
             <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>CTA</p>
-            <span className="text-sm font-bold" style={{ color: '#1C1917' }}>{ad.analysis?.cta || 'Sign up'}</span>
+            <span className="text-sm font-bold" style={{ color: '#1C1917' }}>{ad.analysis?.cta || '—'}</span>
           </div>
           <div className="p-3 rounded-xl relative overflow-hidden" style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)' }}>
             <p className="text-xs font-bold mb-1" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Portée totale (UE)</p>
