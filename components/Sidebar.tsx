@@ -145,7 +145,7 @@ export default function Sidebar() {
 
             {/* Plan */}
             <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(28,25,23,0.07)' }}>
-              <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group"
+              <Link href="/plans" onClick={() => setMenuOpen(false)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group"
                 style={{ background: 'rgba(249,115,22,0.06)', color: '#1C1917' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.12)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(249,115,22,0.06)'}
@@ -159,7 +159,7 @@ export default function Sidebar() {
                   </span>
                 </div>
                 <ChevronRight size={12} style={{ color: 'rgba(28,25,23,0.3)' }} />
-              </button>
+              </Link>
             </div>
 
             {/* Menu items */}
