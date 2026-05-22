@@ -14,7 +14,7 @@ const NAV = [
   { href: '/ads', label: 'Ads', badge: '1.9M+', icon: BarChart2 },
   { href: '/creators', label: 'Créateurs', badge: '20K+', icon: Users },
   { href: '/tunnels', label: 'Tunnels', icon: GitBranch },
-  { href: '/organic', label: 'Organique', soon: true, icon: Leaf },
+  { href: '/organic', label: 'Organique', icon: Leaf },
 ]
 
 const TOOLS = [
@@ -186,7 +186,7 @@ export default function Sidebar() {
             {/* Sign out */}
             <div className="px-3 py-2" style={{ borderTop: '1px solid rgba(28,25,23,0.07)' }}>
               <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
+                onClick={() => signOut({ callbackUrl: '/landing' })}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
                 style={{ color: 'rgba(220,38,38,0.7)' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.06)'; e.currentTarget.style.color = '#DC2626' }}
