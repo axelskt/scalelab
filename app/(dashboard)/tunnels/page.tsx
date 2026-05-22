@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Search, RefreshCw, Star, Eye, Lock, TrendingUp, Minus, ChevronDown, ChevronRight, Copy, X, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
+import { Search, RefreshCw, Star, Eye, Lock, TrendingUp, Minus, ChevronDown, ChevronRight, Copy, X, ExternalLink, Link2 } from 'lucide-react'
 
 const SORTS = ['Le plus d\'ads', 'Plus longtemps', 'En scale', 'Plus récents', 'Plus anciens']
 
@@ -340,13 +341,23 @@ export default function TunnelsPage() {
             <h1 className="text-2xl font-black tracking-tight" style={{ color: '#1C1917' }}>Tunnel Tracker</h1>
             <p className="text-sm mt-0.5" style={{ color: 'rgba(28,25,23,0.4)' }}>{TUNNELS.length} tunnels suivis</p>
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
-            style={{ background: 'rgba(28,25,23,0.05)', color: 'rgba(28,25,23,0.5)', border: '1px solid rgba(28,25,23,0.08)' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#1C1917'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(28,25,23,0.5)'}
-          >
-            <RefreshCw size={13} /> Actualiser
-          </button>
+          <div className="flex items-center gap-2">
+            <Link href="/tunnels/import"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: 'rgba(249,115,22,0.1)', color: '#F97316', border: '1px solid rgba(249,115,22,0.2)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.18)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(249,115,22,0.1)'}
+            >
+              <Link2 size={13} /> Importer un tunnel
+            </Link>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              style={{ background: 'rgba(28,25,23,0.05)', color: 'rgba(28,25,23,0.5)', border: '1px solid rgba(28,25,23,0.08)' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#1C1917'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(28,25,23,0.5)'}
+            >
+              <RefreshCw size={13} /> Actualiser
+            </button>
+          </div>
         </div>
 
         <div className="relative mb-4">
