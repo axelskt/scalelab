@@ -1,0 +1,36 @@
+name: Hourly Ad Scraper
+
+on:
+  schedule:
+    # Toutes les heures
+    - cron: '0 * * * *'
+  # Permet de lancer manuellement depuis GitHub Actions
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    name: Scrape Facebook & TikTok Ads
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger scrape endpoint
+        run: |
+          echo "🕵️ Lancement du scraping — $(date)"
+
+          RESPONSE=$(curl -s -o /tmp/scrape_response.json -w "%{http_code}" \
+            -X POST "${{ secrets.VERCEL_APP_URL }}/api/cron/scrape" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 280)
+
+          echo "HTTP Status: $RESPONSE"
+          echo "Response:"
+          cat /tmp/scrape_response.json | python3 -m json.tool 2>/dev/null || cat /tmp/scrape_response.json
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "❌ Scraping failed with status $RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Scraping terminé"
