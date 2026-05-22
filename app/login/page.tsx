@@ -12,44 +12,47 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#07080F] flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)' }} />
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)' }} />
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+      style={{ background: '#FFFBF7' }}>
+      {/* Background glow subtil */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)' }} />
 
       {/* Card */}
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/landing" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30"
-              style={{ background: '#F97316' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: '#F97316', boxShadow: '0 4px 14px rgba(249,115,22,0.35)' }}>
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
                 <polyline points="6,22 12,15 18,17 26,8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 <circle cx="26" cy="8" r="3" fill="white"/>
               </svg>
             </div>
-            <span className="font-black text-xl text-white tracking-tight">ScaleLab</span>
+            <span className="font-black text-xl tracking-tight" style={{ color: '#1C1917' }}>ScaleLab</span>
           </Link>
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-8 shadow-2xl">
+        <div className="rounded-2xl p-8"
+          style={{ background: 'white', border: '1px solid rgba(28,25,23,0.1)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-black text-white mb-2">Bienvenue</h1>
-            <p className="text-sm text-zinc-400">Connectez-vous pour accéder à votre espace ScaleLab</p>
+            <h1 className="text-2xl font-black mb-2" style={{ color: '#1C1917' }}>Bienvenue</h1>
+            <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>Connectez-vous pour accéder à votre espace ScaleLab</p>
           </div>
 
           {/* Google button */}
           <button
             onClick={handleGoogle}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-50 text-zinc-900 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed mb-4 text-sm"
+            className="w-full flex items-center justify-center gap-3 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed mb-4 text-sm"
+            style={{ background: 'white', border: '1.5px solid rgba(28,25,23,0.15)', color: '#1C1917', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#FAFAF8' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'white' }}
           >
             {loading ? (
-              <svg className="animate-spin h-5 w-5 text-zinc-500" viewBox="0 0 24 24" fill="none">
+              <svg className="animate-spin h-5 w-5" style={{ color: '#F97316' }} viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
@@ -62,10 +65,10 @@ export default function LoginPage() {
           {/* Separator */}
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full" style={{ borderTop: '1px solid rgba(28,25,23,0.1)' }} />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-[#07080F] px-3 text-xs text-zinc-600">ou</span>
+              <span className="px-3 text-xs" style={{ background: 'white', color: 'rgba(28,25,23,0.4)' }}>ou</span>
             </div>
           </div>
 
@@ -75,27 +78,29 @@ export default function LoginPage() {
               type="email"
               placeholder="votre@email.com"
               disabled
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-500 placeholder-zinc-600 cursor-not-allowed"
+              className="w-full rounded-xl px-4 py-3 text-sm cursor-not-allowed"
+              style={{ background: '#FAFAF8', border: '1px solid rgba(28,25,23,0.1)', color: 'rgba(28,25,23,0.35)' }}
             />
             <button
               disabled
-              className="w-full py-3 rounded-xl bg-orange-500/20 text-orange-400/50 font-semibold text-sm cursor-not-allowed border border-orange-500/10"
+              className="w-full py-3 rounded-xl font-semibold text-sm cursor-not-allowed"
+              style={{ background: 'rgba(249,115,22,0.08)', color: 'rgba(249,115,22,0.5)', border: '1px solid rgba(249,115,22,0.15)' }}
             >
               Envoyer le lien magique (bientôt)
             </button>
           </div>
 
           {/* Legal */}
-          <p className="text-center text-xs text-zinc-600 mt-6">
+          <p className="text-center text-xs mt-6" style={{ color: 'rgba(28,25,23,0.4)' }}>
             En continuant, vous acceptez nos{' '}
-            <a href="#" className="text-zinc-400 hover:text-white transition-colors underline underline-offset-2">CGU</a>
+            <a href="#" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(28,25,23,0.6)' }}>CGU</a>
             {' '}et notre{' '}
-            <a href="#" className="text-zinc-400 hover:text-white transition-colors underline underline-offset-2">politique de confidentialité</a>.
+            <a href="#" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(28,25,23,0.6)' }}>politique de confidentialité</a>.
           </p>
         </div>
 
-        <p className="text-center text-xs text-zinc-600 mt-6">
-          <Link href="/landing" className="hover:text-zinc-400 transition-colors">
+        <p className="text-center text-xs mt-6">
+          <Link href="/landing" className="transition-colors" style={{ color: 'rgba(28,25,23,0.4)' }}>
             ← Retour à l'accueil
           </Link>
         </p>
