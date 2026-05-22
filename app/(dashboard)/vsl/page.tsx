@@ -30,7 +30,7 @@ export default function VSLPro() {
   const [error, setError] = useState<string | null>(null)
   const [renderOutput, setRenderOutput] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('brief')
-  const [template, setTemplate] = useState<'premium' | 'editorial' | 'dynamic'>('premium')
+  const [template, setTemplate] = useState<'premium' | 'editorial' | 'dynamic' | 'vertical'>('premium')
 
   const handlePatternChange = (pattern: VSLPattern) => {
     setBrief((b) => ({ ...b, pattern }))
@@ -119,6 +119,7 @@ export default function VSLPro() {
           <span className="text-xs text-zinc-600 mr-1">Style :</span>
           {([
             { key: 'premium',   label: 'Premium Dark', desc: 'Fond noir · Glow orange · 1600 style' },
+            { key: 'vertical',  label: 'Vertical 9:16', desc: 'TikTok/Reels · Orbit · Hub & Spoke' },
             { key: 'editorial', label: 'Éditorial',    desc: 'Crème · Serif · Zecom style' },
             { key: 'dynamic',   label: 'Dynamique',    desc: 'Glitch · Impact · Énergie' },
           ] as const).map(t => (
