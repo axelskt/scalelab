@@ -4,8 +4,8 @@ import { ScrapedAd, SupportedLanguage } from '@/lib/ads-db'
 import TranscriptionPanel from '@/components/TranscriptionPanel'
 
 const SOURCE_BADGE: Record<string, { label: string; color: string; dot: string }> = {
-  facebook: { label: 'Meta', color: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20', dot: '#1877F2' },
-  tiktok: { label: 'TikTok', color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-300 dark:bg-zinc-800 dark:border-zinc-700', dot: '#69C9D0' },
+  facebook: { label: 'Meta', color: 'text-blue-600 bg-blue-50 border-blue-100', dot: '#1877F2' },
+  tiktok: { label: 'TikTok', color: 'text-zinc-700 bg-zinc-100 border-zinc-200', dot: '#69C9D0' },
 }
 
 const PATTERN_COLORS: Record<string, string> = {
@@ -176,16 +176,18 @@ export default function AdsPage() {
   return (
     <div className="h-full flex flex-col">
       {/* Topbar */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-6 py-4 flex items-center gap-4 flex-shrink-0">
+      <div className="px-6 py-4 flex items-center gap-4 flex-shrink-0"
+        style={{ background: 'white', borderBottom: '1px solid rgba(28,25,23,0.08)' }}>
         <div>
-          <h1 className="text-lg font-bold text-zinc-900 dark:text-white">Ad Library</h1>
-          <p className="text-xs text-zinc-500">+{ads.length.toLocaleString('fr-FR')} ads · Meta & TikTok · Infopreneurs FR</p>
+          <h1 className="text-lg font-bold" style={{ color: '#1C1917' }}>Ad Library</h1>
+          <p className="text-xs" style={{ color: 'rgba(28,25,23,0.45)' }}>+{ads.length.toLocaleString('fr-FR')} ads · Meta & TikTok · Infopreneurs FR</p>
         </div>
 
         {/* Search */}
         <div className="flex-1 max-w-sm">
           <input
-            className="w-full h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-amber-400 transition-colors"
+            className="w-full h-9 px-3 rounded-lg text-sm focus:outline-none transition-colors"
+            style={{ border: '1px solid rgba(28,25,23,0.12)', background: '#FAFAF8', color: '#1C1917' }}
             placeholder="Rechercher un annonceur, un mot-clé..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -193,10 +195,16 @@ export default function AdsPage() {
         </div>
 
         {/* Sort tabs */}
-        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 rounded-lg p-0.5"
+          style={{ background: 'rgba(28,25,23,0.06)' }}>
           {SORT_OPTIONS.map(opt => (
             <button key={opt.value} onClick={() => setSortBy(opt.value)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sortBy === opt.value ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              className="px-3 py-1 rounded-md text-xs font-medium transition-all"
+              style={{
+                background: sortBy === opt.value ? 'white' : 'transparent',
+                color: sortBy === opt.value ? '#1C1917' : 'rgba(28,25,23,0.45)',
+                boxShadow: sortBy === opt.value ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              }}>
               {opt.label}
             </button>
           ))}
@@ -204,53 +212,56 @@ export default function AdsPage() {
 
         {/* Scrape button */}
         <button onClick={() => setShowScrapePanel(!showScrapePanel)}
-          className="flex items-center gap-2 h-9 px-4 rounded-lg bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors">
+          className="flex items-center gap-2 h-9 px-4 rounded-lg font-semibold text-sm transition-colors"
+          style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}>
           🔍 Scraper
         </button>
       </div>
 
       {/* Filter bar */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-6 py-2 flex items-center gap-3 flex-wrap flex-shrink-0">
+      <div className="px-6 py-2 flex items-center gap-3 flex-wrap flex-shrink-0"
+        style={{ background: '#F8F5F0', borderBottom: '1px solid rgba(28,25,23,0.08)' }}>
         {/* Source filter */}
         {(['all', 'facebook', 'tiktok'] as const).map(s => (
           <button key={s} onClick={() => setFilterSource(s)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filterSource === s ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600'}`}>
+            className="px-3 py-1 rounded-full text-xs font-medium border transition-all"
+            style={filterSource === s ? { borderColor: '#F97316', background: 'rgba(249,115,22,0.08)', color: '#F97316' } : { borderColor: 'rgba(28,25,23,0.12)', background: 'white', color: 'rgba(28,25,23,0.5)' }}>
             {s === 'all' ? `Toutes (${ads.length})` : s === 'facebook' ? `Meta (${ads.filter(a => a.source === 'facebook').length})` : `TikTok (${ads.filter(a => a.source === 'tiktok').length})`}
           </button>
         ))}
 
-        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+        <div className="w-px h-4 bg-zinc-200" />
 
         {/* Pattern filter */}
         {['PAS', 'AIDA', 'PASTOR', 'BAB', 'Story'].map(p => (
           <button key={p} onClick={() => setFilterPattern(filterPattern === p ? 'all' : p)}
-            className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${filterPattern === p ? 'text-white border-transparent' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300'}`}
+            className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${filterPattern === p ? 'text-white border-transparent' : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'}`}
             style={filterPattern === p ? { backgroundColor: PATTERN_COLORS[p], borderColor: PATTERN_COLORS[p] } : {}}>
             {p}
           </button>
         ))}
 
-        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+        <div className="w-px h-4 bg-zinc-200" />
 
         {/* Language filter */}
         <div className="flex items-center gap-1">
           <button onClick={() => setFilterLanguage('all')}
-            className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === 'all' ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500'}`}>
+            className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === 'all' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-zinc-200 text-zinc-500'}`}>
             🌐 Toutes
           </button>
           {LANGUAGES.map(lang => (
             <button key={lang.code} onClick={() => setFilterLanguage(filterLanguage === lang.code ? 'all' : lang.code)}
-              className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === lang.code ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-300'}`}>
+              className={`h-7 px-2 rounded-lg border text-xs font-medium transition-colors ${filterLanguage === lang.code ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'}`}>
               {lang.flag} {lang.label}
             </button>
           ))}
         </div>
 
-        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
+        <div className="w-px h-4 bg-zinc-200" />
 
         {/* Min days */}
         <select value={filterMinDays} onChange={e => setFilterMinDays(Number(e.target.value))}
-          className="h-7 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none">
+          className="h-7 px-2 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-700 focus:outline-none">
           <option value={0}>Actif depuis</option>
           <option value={7}>7+ jours</option>
           <option value={30}>30+ jours</option>
@@ -260,7 +271,7 @@ export default function AdsPage() {
 
         {/* Min views */}
         <select value={filterMinViews} onChange={e => setFilterMinViews(Number(e.target.value))}
-          className="h-7 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none">
+          className="h-7 px-2 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-700 focus:outline-none">
           <option value={0}>Vues (toutes)</option>
           <option value={10000}>10K+ vues</option>
           <option value={50000}>50K+ vues</option>
@@ -273,45 +284,50 @@ export default function AdsPage() {
 
       {/* Scrape panel */}
       {showScrapePanel && (
-        <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-4 flex items-end gap-4 flex-shrink-0">
+        <div className="px-6 py-4 flex items-end gap-4 flex-shrink-0"
+          style={{ background: 'white', borderBottom: '1px solid rgba(28,25,23,0.08)' }}>
           <div>
-            <label className="text-xs text-zinc-500 block mb-1">Mot-clé</label>
-            <input className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400 w-48"
+            <label className="text-xs block mb-1" style={{ color: 'rgba(28,25,23,0.45)' }}>Mot-clé</label>
+            <input className="h-9 px-3 rounded-lg text-sm focus:outline-none w-48"
+              style={{ border: '1px solid rgba(28,25,23,0.12)', background: '#FAFAF8', color: '#1C1917' }}
               value={scrapeKeyword} onChange={e => setScrapeKeyword(e.target.value)} placeholder="formation..." />
           </div>
           <div className="flex gap-1 flex-wrap">
             {KEYWORDS.map(kw => (
               <button key={kw} onClick={() => setScrapeKeyword(kw)}
-                className={`px-2 py-1 rounded-full text-xs border transition-colors ${scrapeKeyword === kw ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500'}`}>
+                className="px-2 py-1 rounded-full text-xs border transition-all"
+                style={scrapeKeyword === kw ? { borderColor: '#F97316', background: 'rgba(249,115,22,0.08)', color: '#F97316' } : { borderColor: 'rgba(28,25,23,0.12)', background: 'white', color: 'rgba(28,25,23,0.5)' }}>
                 {kw}
               </button>
             ))}
           </div>
           <div>
-            <label className="text-xs text-zinc-500 block mb-1">Source</label>
+            <label className="text-xs block mb-1" style={{ color: 'rgba(28,25,23,0.45)' }}>Source</label>
             <div className="flex gap-1">
               {(['facebook', 'tiktok', 'both'] as const).map(s => (
                 <button key={s} onClick={() => setScrapeSource(s)}
-                  className={`h-9 px-3 rounded-lg border text-xs font-medium transition-colors ${scrapeSource === s ? 'border-amber-400 bg-amber-500 text-black' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300'}`}>
+                  className="h-9 px-3 rounded-lg text-xs font-medium transition-all"
+                  style={scrapeSource === s ? { border: '1px solid #F97316', background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white' } : { border: '1px solid rgba(28,25,23,0.12)', background: 'white', color: 'rgba(28,25,23,0.5)' }}>
                   {s === 'both' ? 'Les 2' : s === 'facebook' ? 'Meta' : 'TikTok'}
                 </button>
               ))}
             </div>
           </div>
           <button onClick={handleManualScrape} disabled={scraping}
-            className="h-9 px-4 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black font-semibold text-sm hover:bg-zinc-700 dark:hover:bg-zinc-200 disabled:opacity-40 transition-colors flex items-center gap-2">
+            className="h-9 px-4 rounded-lg font-semibold text-sm disabled:opacity-40 transition-all flex items-center gap-2"
+            style={{ background: '#1C1917', color: 'white' }}>
             {scraping ? <><svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Scraping...</> : 'Lancer'}
           </button>
 
           {/* Auto scrape toggle */}
           <div className="flex items-center gap-2 ml-4">
             <button onClick={() => setAutoScrape(!autoScrape)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${autoScrape ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+              className={`relative w-10 h-5 rounded-full transition-colors ${autoScrape ? 'bg-green-500' : 'bg-zinc-300'}`}>
               <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoScrape ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </button>
-            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Scrape continu</span>
+            <span className="text-xs font-medium" style={{ color: '#1C1917' }}>Scrape continu</span>
             {autoScrape && scrapeProgress && (
-              <span className="text-xs text-green-600 dark:text-green-400">{scrapeProgress}</span>
+              <span className="text-xs text-green-600">{scrapeProgress}</span>
             )}
           </div>
         </div>
@@ -362,28 +378,38 @@ export default function AdsPage() {
       {/* Adapt modal */}
       {adaptModal && selectedAd && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setAdaptModal(false)}>
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="rounded-2xl w-full max-w-lg p-6 space-y-4" style={{ background: '#FFFBF7', border: '1px solid rgba(28,25,23,0.1)', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-zinc-900 dark:text-white">Adapter à mon produit</h3>
-              <button onClick={() => setAdaptModal(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white">✕</button>
+              <h3 className="font-bold" style={{ color: '#1C1917' }}>Adapter à mon produit</h3>
+              <button onClick={() => setAdaptModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                style={{ color: 'rgba(28,25,23,0.4)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(28,25,23,0.06)'; e.currentTarget.style.color = '#1C1917' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(28,25,23,0.4)' }}>✕</button>
             </div>
-            <p className="text-xs text-zinc-500">Claude adapte le script de <span className="text-zinc-900 dark:text-white font-medium">{selectedAd.advertiser}</span> ({selectedAd.runDays}j actif) à ton produit.</p>
-            <input className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400"
+            <p className="text-xs" style={{ color: 'rgba(28,25,23,0.5)' }}>Claude adapte le script de <span className="font-medium" style={{ color: '#1C1917' }}>{selectedAd.advertiser}</span> ({selectedAd.runDays}j actif) à ton produit.</p>
+            <input className="w-full h-10 px-3 rounded-lg text-sm focus:outline-none"
+              style={{ border: '1px solid rgba(28,25,23,0.12)', background: 'white', color: '#1C1917' }}
               placeholder="Ton produit (ex: IA Manager)" value={adaptProduct} onChange={e => setAdaptProduct(e.target.value)} />
-            <input className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-amber-400"
+            <input className="w-full h-10 px-3 rounded-lg text-sm focus:outline-none"
+              style={{ border: '1px solid rgba(28,25,23,0.12)', background: 'white', color: '#1C1917' }}
               placeholder="Ton audience (ex: Entrepreneurs 25-35 ans)" value={adaptAudience} onChange={e => setAdaptAudience(e.target.value)} />
             {adaptedScript ? (
               <div className="space-y-3">
-                <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">{adaptedScript}</div>
+                <div className="p-4 rounded-xl text-sm whitespace-pre-wrap leading-relaxed"
+                  style={{ background: 'white', border: '1px solid rgba(28,25,23,0.08)', color: 'rgba(28,25,23,0.75)' }}>{adaptedScript}</div>
                 <div className="flex gap-2">
                   <button onClick={() => navigator.clipboard.writeText(adaptedScript)}
-                    className="flex-1 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-semibold">📋 Copier</button>
-                  <button onClick={() => setAdaptedScript(null)} className="flex-1 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-600 dark:text-zinc-400">Régénérer</button>
+                    className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                    style={{ background: '#1C1917', color: 'white' }}>📋 Copier</button>
+                  <button onClick={() => setAdaptedScript(null)}
+                    className="flex-1 py-2 rounded-lg text-sm"
+                    style={{ border: '1px solid rgba(28,25,23,0.12)', color: 'rgba(28,25,23,0.6)' }}>Régénérer</button>
                 </div>
               </div>
             ) : (
               <button onClick={handleAdapt} disabled={adaptLoading || !adaptProduct || !adaptAudience}
-                className="w-full py-2.5 rounded-xl bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 disabled:opacity-40 transition-colors flex items-center justify-center gap-2">
+                className="w-full py-2.5 rounded-xl font-bold text-sm disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white', boxShadow: '0 4px 14px rgba(249,115,22,0.3)' }}>
                 {adaptLoading ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Adaptation...</> : '✦ Adapter le script'}
               </button>
             )}
@@ -410,9 +436,14 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
 
   return (
     <div onClick={onClick}
-      className={`rounded-xl border cursor-pointer transition-all hover:shadow-md overflow-hidden bg-white dark:bg-zinc-900 ${selected ? 'border-amber-400 shadow-amber-500/10 shadow-lg' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'}`}>
+      className="rounded-xl cursor-pointer transition-all overflow-hidden"
+      style={{
+        background: 'white',
+        border: selected ? '2px solid #F97316' : '1px solid rgba(28,25,23,0.1)',
+        boxShadow: selected ? '0 4px 16px rgba(249,115,22,0.15)' : '0 1px 4px rgba(0,0,0,0.04)',
+      }}>
       {/* Thumbnail */}
-      <div className="relative h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 overflow-hidden">
+      <div className="relative h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden">
         {ad.thumbnailUrl ? (
           <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -442,9 +473,9 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
 
       <div className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-semibold text-zinc-900 dark:text-white leading-tight line-clamp-1">{ad.advertiser}</p>
+          <p className="text-xs font-semibold text-zinc-900 leading-tight line-clamp-1">{ad.advertiser}</p>
         </div>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{ad.adText}</p>
+        <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{ad.adText}</p>
 
         {/* Engagement */}
         {ad.engagement && (
@@ -452,7 +483,7 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
             <span>👁 {formatViews(ad.engagement.views || 0)}</span>
             <span>❤ {formatViews(ad.engagement.likes || 0)}</span>
             <span>💬 {formatViews(ad.engagement.comments || 0)}</span>
-            {ad.engagement.estimated && <span className="text-zinc-300 dark:text-zinc-600 text-xs">est.</span>}
+            {ad.engagement.estimated && <span className="text-zinc-300 text-xs">est.</span>}
           </div>
         )}
 
@@ -464,13 +495,13 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
             </span>
           )}
           {ad.transcription && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-500/20">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
               🎙 Analysé
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-zinc-100">
           <span>SEE DETAILS</span>
           <span className="uppercase tracking-wider font-medium">{ad.adUrl.includes('tiktok') ? 'tiktok' : 'fb.me'}</span>
         </div>
@@ -655,7 +686,7 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
         {ad.analysis ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Analyse IA</p>
+              <p className="text-xs font-semibold uppercase tracking-widest">Analyse IA</p>
               {ad.analysis.pattern && (
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full"
                   style={{ backgroundColor: PATTERN_COLORS[ad.analysis.pattern] + '20', color: PATTERN_COLORS[ad.analysis.pattern] }}>
@@ -664,7 +695,7 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
               )}
             </div>
 
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 italic leading-relaxed">{ad.analysis.summary}</p>
+            <p className="text-xs italic leading-relaxed">{ad.analysis.summary}</p>
 
             <div className="grid grid-cols-2 gap-2">
               <ScoreBar label="Urgence" value={ad.analysis.urgencyLevel} max={10} color="#FF3B30" />
@@ -678,18 +709,18 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
                 { label: 'CTA', v: ad.analysis.cta },
               ].filter(x => x.v).map(({ label, v }) => (
                 <div key={label} className="flex gap-2">
-                  <span className="text-xs text-zinc-400 w-16 flex-shrink-0 pt-0.5">{label}</span>
-                  <span className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">{v}</span>
+                  <span className="text-xs w-16 flex-shrink-0 pt-0.5">{label}</span>
+                  <span className="text-xs leading-relaxed">{v}</span>
                 </div>
               ))}
             </div>
 
             {ad.analysis.techniques.length > 0 && (
               <div>
-                <p className="text-xs text-zinc-400 mb-1.5">Techniques</p>
+                <p className="text-xs mb-1.5">Techniques</p>
                 <div className="flex flex-wrap gap-1">
                   {ad.analysis.techniques.map(t => (
-                    <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">{t}</span>
+                    <span key={t} className="text-xs px-2 py-0.5 rounded-full">{t}</span>
                   ))}
                 </div>
               </div>
@@ -697,7 +728,7 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
           </div>
         ) : (
           <button onClick={onAnalyze} disabled={analyzing}
-            className="w-full py-2.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 text-sm font-medium hover:border-amber-400 hover:text-amber-500 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+            className="w-full py-2.5 rounded-xl border-2 border-dashed text-sm font-medium transition-all disabled:opacity-40 flex items-center justify-center gap-2">
             {analyzing ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Analyse...</> : '✦ Analyser le tunnel avec Claude'}
           </button>
         )}
@@ -739,8 +770,8 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
         {/* Engagement */}
         {ad.engagement && (
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">
-              Engagement {ad.engagement.estimated && <span className="text-zinc-300 dark:text-zinc-600 font-normal normal-case">(estimé)</span>}
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2">
+              Engagement {ad.engagement.estimated && <span className="font-normal normal-case">(estimé)</span>}
             </p>
             <div className="grid grid-cols-4 gap-2">
               {[
@@ -749,10 +780,11 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
                 { icon: '💬', label: 'Comms', value: ad.engagement.comments },
                 { icon: '↗', label: 'Partages', value: ad.engagement.shares },
               ].map(({ icon, label, value }) => (
-                <div key={label} className="rounded-lg border border-zinc-100 dark:border-zinc-800 p-2 text-center">
+                <div key={label} className="rounded-lg p-2 text-center"
+                  style={{ border: '1px solid rgba(28,25,23,0.08)', background: 'white' }}>
                   <div className="text-base mb-0.5">{icon}</div>
-                  <div className="text-xs font-bold text-zinc-900 dark:text-white">{formatViews(value || 0)}</div>
-                  <div className="text-xs text-zinc-400">{label}</div>
+                  <div className="text-xs font-bold" style={{ color: '#1C1917' }}>{formatViews(value || 0)}</div>
+                  <div className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -780,12 +812,12 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
 
 function ScoreBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   return (
-    <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-2.5">
-      <p className="text-xs text-zinc-400 mb-1.5">{label}</p>
-      <div className="h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-1">
+    <div className="rounded-xl p-2.5" style={{ border: '1px solid rgba(28,25,23,0.08)', background: 'white' }}>
+      <p className="text-xs mb-1.5" style={{ color: 'rgba(28,25,23,0.4)' }}>{label}</p>
+      <div className="h-1.5 rounded-full mb-1" style={{ background: 'rgba(28,25,23,0.08)' }}>
         <div className="h-1.5 rounded-full transition-all" style={{ width: `${(value / max) * 100}%`, backgroundColor: color }} />
       </div>
-      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{value}/{max}</p>
+      <p className="text-xs font-bold" style={{ color: '#1C1917' }}>{value}/{max}</p>
     </div>
   )
 }
