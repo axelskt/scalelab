@@ -3,14 +3,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useRef, useEffect } from 'react'
-import React from 'react'
+import type { LucideIcon } from 'lucide-react'
 import {
   Home, BarChart2, Users, GitBranch, Leaf,
   Zap, ScanSearch, Star, LayoutDashboard, Settings,
   LogOut, CreditCard, Share2, ChevronRight, Sparkles
 } from 'lucide-react'
 
-const NAV: { href: string; label: string; icon: React.ElementType; badge?: string; soon?: boolean }[] = [
+interface NavItem { href: string; label: string; icon: LucideIcon; badge?: string; soon?: boolean }
+interface ToolItem { href: string; label: string; icon: LucideIcon; accent?: boolean }
+
+const NAV: NavItem[] = [
   { href: '/', label: 'Accueil', icon: Home },
   { href: '/ads', label: 'Ads', badge: '1.9M+', icon: BarChart2 },
   { href: '/creators', label: 'Créateurs', badge: '20K+', icon: Users },
@@ -18,7 +21,7 @@ const NAV: { href: string; label: string; icon: React.ElementType; badge?: strin
   { href: '/organic', label: 'Organique', icon: Leaf },
 ]
 
-const TOOLS: { href: string; label: string; icon: React.ElementType; accent?: boolean }[] = [
+const TOOLS: ToolItem[] = [
   { href: '/vsl', label: 'VSL Generator', accent: true, icon: Zap },
   { href: '/analyzer', label: 'Analyseur', icon: ScanSearch },
   { href: '/favorites', label: 'Favoris', icon: Star },
