@@ -232,17 +232,6 @@ export default function AdsPage() {
 
         <div className="w-px h-4 bg-zinc-200" />
 
-        {/* Pattern filter */}
-        {['PAS', 'AIDA', 'PASTOR', 'BAB', 'Story'].map(p => (
-          <button key={p} onClick={() => setFilterPattern(filterPattern === p ? 'all' : p)}
-            className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${filterPattern === p ? 'text-white border-transparent' : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'}`}
-            style={filterPattern === p ? { backgroundColor: PATTERN_COLORS[p], borderColor: PATTERN_COLORS[p] } : {}}>
-            {p}
-          </button>
-        ))}
-
-        <div className="w-px h-4 bg-zinc-200" />
-
         {/* Language filter */}
         <div className="flex items-center gap-1">
           <button onClick={() => setFilterLanguage('all')}
@@ -433,22 +422,49 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
   const src = SOURCE_BADGE[ad.source]
   const vslScore = ad.transcription?.score.overall
   const vslColor = vslScore ? (vslScore >= 75 ? '#00D26A' : vslScore >= 55 ? '#F5A623' : '#FF3B30') : null
+  const hasVideo = !!(ad.videoUrl || ad.adUrl)
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = ad.videoUrl || ad.adUrl
+    if (url) window.open(url, '_blank')
+  }
 
   return (
     <div onClick={onClick}
-      className="rounded-xl cursor-pointer transition-all overflow-hidden"
+      className="rounded-xl cursor-pointer transition-all overflow-hidden group"
       style={{
         background: 'white',
         border: selected ? '2px solid #F97316' : '1px solid rgba(28,25,23,0.1)',
         boxShadow: selected ? '0 4px 16px rgba(249,115,22,0.15)' : '0 1px 4px rgba(0,0,0,0.04)',
       }}>
       {/* Thumbnail */}
-      <div className="relative h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden">
+      <div className="relative h-44 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden">
         {ad.thumbnailUrl ? (
-          <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+          <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">▷</div>
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f3f0eb, #e8e3db)' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#F97316"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
         )}
+
+        {/* Dark overlay on hover */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200" />
+
+        {/* Play button — visible on hover */}
+        {hasVideo && (
+          <button onClick={handlePlay}
+            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-sm transition-transform duration-200 hover:scale-110"
+              style={{ background: 'rgba(249,115,22,0.92)', boxShadow: '0 4px 20px rgba(249,115,22,0.5)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </button>
+        )}
+
+        {/* Top badges */}
         <span className={`absolute top-2 left-2 text-xs px-1.5 py-0.5 rounded-full border font-medium ${src.color}`}>
           {src.label}
         </span>
@@ -458,6 +474,7 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/60 text-white">{LANG_FLAGS[ad.language]}</span>
           )}
         </div>
+
         {/* VSL score badge */}
         {vslScore && vslColor && (
           <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
@@ -465,45 +482,35 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
             {vslScore}
           </div>
         )}
+
         <span className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/60 px-1.5 py-0.5 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          ACTIVE
+          ACTIF
         </span>
       </div>
 
       <div className="p-3 space-y-2">
-        <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-semibold text-zinc-900 leading-tight line-clamp-1">{ad.advertiser}</p>
-        </div>
-        <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{ad.adText}</p>
+        <p className="text-xs font-bold leading-tight line-clamp-1" style={{ color: '#1C1917' }}>{ad.advertiser}</p>
+        <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: 'rgba(28,25,23,0.55)' }}>{ad.adText}</p>
 
         {/* Engagement */}
         {ad.engagement && (
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>
             <span>👁 {formatViews(ad.engagement.views || 0)}</span>
             <span>❤ {formatViews(ad.engagement.likes || 0)}</span>
             <span>💬 {formatViews(ad.engagement.comments || 0)}</span>
-            {ad.engagement.estimated && <span className="text-zinc-300 text-xs">est.</span>}
           </div>
         )}
 
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {ad.analysis?.pattern && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
-              style={{ backgroundColor: PATTERN_COLORS[ad.analysis.pattern] + '20', color: PATTERN_COLORS[ad.analysis.pattern] }}>
-              {ad.analysis.pattern}
-            </span>
+        <div className="flex items-center justify-between pt-1" style={{ borderTop: '1px solid rgba(28,25,23,0.06)' }}>
+          {ad.transcription ? (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">🎙 Analysé</span>
+          ) : (
+            <span className="text-xs" style={{ color: 'rgba(28,25,23,0.3)' }}>Voir détails →</span>
           )}
-          {ad.transcription && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
-              🎙 Analysé
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-zinc-100">
-          <span>SEE DETAILS</span>
-          <span className="uppercase tracking-wider font-medium">{ad.adUrl.includes('tiktok') ? 'tiktok' : 'fb.me'}</span>
+          <span className="text-xs font-medium uppercase tracking-wider" style={{ color: 'rgba(28,25,23,0.3)' }}>
+            {ad.source === 'tiktok' ? 'TikTok' : 'Meta'}
+          </span>
         </div>
       </div>
     </div>
