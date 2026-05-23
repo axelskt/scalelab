@@ -431,19 +431,12 @@ function VideoModal({ ad, onClose }: { ad: ScrapedAd; onClose: () => void }) {
         <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
           {hasDirectVideo ? (
             <video src={liveVideoUrl!} controls autoPlay className="w-full h-full" />
-          ) : ad.adUrl ? (
-            <iframe
-              src={ad.adUrl}
-              className="w-full h-full border-0"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-popups"
-            />
           ) : ad.thumbnailUrl ? (
-            <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover opacity-60" />
+            <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-white/40 text-sm">Aperçu non disponible</span>
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="rgba(255,255,255,0.2)"><path d="M8 5v14l11-7z"/></svg>
+              <span className="text-white/40 text-xs">Aperçu non disponible</span>
             </div>
           )}
           <button onClick={onClose}
