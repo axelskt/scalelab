@@ -99,6 +99,8 @@ const META_FIELDS = [
   'currency',
   'publisher_platforms',
   'languages',
+  'video_hd_url',
+  'video_sd_url',
 ].join(',')
 
 export async function scrapeFBAdLibraryFetch(
@@ -153,6 +155,7 @@ export async function scrapeFBAdLibraryFetch(
         const pageId = item.page_id as string
         const pageUrl = pageId ? `https://facebook.com/${pageId}` : ''
         const snapshotUrl = (item.ad_snapshot_url as string) || ''
+        const videoUrl = (item.video_hd_url as string) || (item.video_sd_url as string) || ''
         const startDateRaw = (item.ad_delivery_start_time as string) || ''
         const startDate = startDateRaw ? startDateRaw.split('T')[0] : new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
         const runDays = startDate ? Math.round((Date.now() - new Date(startDate).getTime()) / 86400000) : 30
@@ -194,6 +197,7 @@ export async function scrapeFBAdLibraryFetch(
           runDays,
           adText: adText || `[Pub ${keyword} — texte non disponible EU]`,
           adUrl: snapshotUrl || pageUrl,
+          videoUrl: videoUrl || undefined,
           niche: [niche],
           keywords: [keyword],
           scrapedAt: new Date().toISOString(),
