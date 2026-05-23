@@ -145,8 +145,9 @@ export default function PlansPage() {
                       Plan actuel <ArrowRight size={14} />
                     </button>
                   ) : (
-                    <button
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white transition-all"
+                    <a
+                      href={`mailto:contact@trackads.fr?subject=Upgrade ${plan.name}&body=Je souhaite passer au plan ${plan.name}.`}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all"
                       style={{
                         background: plan.popular
                           ? 'linear-gradient(135deg, #F97316, #FB923C)'
@@ -154,17 +155,9 @@ export default function PlansPage() {
                         color: plan.popular ? 'white' : '#1C1917',
                         boxShadow: plan.popular ? '0 4px 14px rgba(249,115,22,0.3)' : 'none',
                       }}
-                      onMouseEnter={e => {
-                        if (!plan.popular) e.currentTarget.style.background = 'rgba(28,25,23,0.13)'
-                        else e.currentTarget.style.boxShadow = '0 6px 20px rgba(249,115,22,0.4)'
-                      }}
-                      onMouseLeave={e => {
-                        if (!plan.popular) e.currentTarget.style.background = 'rgba(28,25,23,0.08)'
-                        else e.currentTarget.style.boxShadow = '0 4px 14px rgba(249,115,22,0.3)'
-                      }}
                     >
                       Passer au paiement <ArrowRight size={14} />
-                    </button>
+                    </a>
                   )}
 
                   {/* Features */}

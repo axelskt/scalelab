@@ -168,23 +168,23 @@ export default function Sidebar() {
 
             {/* Menu items */}
             <div className="px-3 py-2 space-y-0.5">
-              <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              <Link href="/plans" onClick={() => setMenuOpen(false)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
                 style={{ color: 'rgba(28,25,23,0.55)' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(28,25,23,0.05)'; e.currentTarget.style.color = '#1C1917' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(28,25,23,0.55)' }}
               >
                 <CreditCard size={13} />
                 <span>Facturation</span>
-              </button>
+              </Link>
 
-              <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              <Link href="/affiliation" onClick={() => setMenuOpen(false)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
                 style={{ color: 'rgba(28,25,23,0.55)' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(28,25,23,0.05)'; e.currentTarget.style.color = '#1C1917' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(28,25,23,0.55)' }}
               >
                 <Share2 size={13} />
                 <span>Affiliation</span>
-              </button>
+              </Link>
             </div>
 
             {/* Sign out */}

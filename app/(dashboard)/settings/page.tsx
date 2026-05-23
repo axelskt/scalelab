@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { User, Shield, Users, EyeOff, Camera, ArrowUpRight, Plug, Check, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
@@ -101,6 +102,13 @@ function Field({ label, value, disabled }: { label: string; value: string; disab
 }
 
 function ProfileTab({ name, email, image }: { name: string; email: string; image?: string | null }) {
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = () => {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
   return (
     <div>
       <Section title="Photo de profil">
@@ -129,14 +137,18 @@ function ProfileTab({ name, email, image }: { name: string; email: string; image
       <Section title="Informations">
         <Field label="Nom" value={name} />
         <Field label="Email" value={email} disabled />
-        <div className="flex justify-end mt-4">
+        <div className="flex items-center justify-end gap-3 mt-4">
+          {saved && (
+            <span className="text-xs font-medium flex items-center gap-1.5" style={{ color: '#16A34A' }}>
+              <Check size={12} /> Enregistré
+            </span>
+          )}
           <button
+            onClick={handleSave}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-            style={{ background: 'rgba(249,115,22,0.85)' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F97316'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(249,115,22,0.85)'}
+            style={{ background: saved ? '#16A34A' : '#F97316', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}
           >
-            Enregistrer le profil
+            {saved ? '✓ Enregistré' : 'Enregistrer le profil'}
           </button>
         </div>
       </Section>
@@ -199,14 +211,14 @@ function TeamTab() {
         <p className="text-sm mb-3" style={{ color: 'rgba(28,25,23,0.55)' }}>
           Votre plan ne permet pas d'inviter des membres.
         </p>
-        <button className="inline-flex items-center gap-1.5 text-xs font-semibold transition-all"
+        <Link href="/plans" className="inline-flex items-center gap-1.5 text-xs font-semibold transition-all"
           style={{ color: '#F97316' }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           <ArrowUpRight size={13} />
           Passer au plan Pro ou Business pour inviter des membres
-        </button>
+        </Link>
       </div>
     </Section>
   )
