@@ -417,8 +417,77 @@ function formatViews(n: number): string {
   return n.toString()
 }
 
+// ─── Video Modal ──────────────────────────────────────────────────────────────
+function VideoModal({ ad, onClose }: { ad: ScrapedAd; onClose: () => void }) {
+  const hasDirectVideo = !!ad.videoUrl
+  const snapshotUrl = ad.adUrl?.includes('facebook.com/ads') ? ad.adUrl : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
+      <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}
+        style={{ background: '#FFFBF7', border: '1px solid rgba(28,25,23,0.1)' }}>
+        {/* Video area */}
+        <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
+          {hasDirectVideo ? (
+            <video src={ad.videoUrl} controls autoPlay className="w-full h-full" />
+          ) : ad.thumbnailUrl ? (
+            <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover opacity-60" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-white/40 text-sm">Aperçu non disponible</span>
+            </div>
+          )}
+          <button onClick={onClose}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}>✕</button>
+        </div>
+
+        {/* Info */}
+        <div className="p-4 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-bold text-sm" style={{ color: '#1C1917' }}>{ad.advertiser}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(28,25,23,0.45)' }}>
+                {ad.source === 'facebook' ? 'Meta' : 'TikTok'} · Actif depuis {ad.runDays} jours
+              </p>
+            </div>
+            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full flex-shrink-0"
+              style={{ background: 'rgba(34,197,94,0.1)', color: '#16A34A', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> ACTIF
+            </span>
+          </div>
+
+          {ad.adText && !ad.adText.includes('[Pub ') && (
+            <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'rgba(28,25,23,0.6)' }}>
+              {ad.adText}
+            </p>
+          )}
+
+          {/* CTA buttons */}
+          <div className="flex gap-2 pt-1">
+            {(snapshotUrl || ad.adUrl) && (
+              <a href={snapshotUrl || ad.adUrl} target="_blank" rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white', boxShadow: '0 4px 12px rgba(249,115,22,0.3)' }}>
+                {ad.source === 'facebook' ? '↗ Voir sur Facebook' : '↗ Voir sur TikTok'}
+              </a>
+            )}
+            <button onClick={onClose}
+              className="px-4 py-2.5 rounded-xl text-sm transition-all"
+              style={{ border: '1px solid rgba(28,25,23,0.12)', color: 'rgba(28,25,23,0.6)', background: 'white' }}>
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Ad Card (grid) ───────────────────────────────────────────────────────────
 function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; onClick: () => void }) {
+  const [showVideo, setShowVideo] = useState(false)
   const src = SOURCE_BADGE[ad.source]
   const vslScore = ad.transcription?.score.overall
   const vslColor = vslScore ? (vslScore >= 75 ? '#00D26A' : vslScore >= 55 ? '#F5A623' : '#FF3B30') : null
@@ -426,11 +495,12 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const url = ad.videoUrl || ad.adUrl
-    if (url) window.open(url, '_blank')
+    setShowVideo(true)
   }
 
   return (
+    <>
+    {showVideo && <VideoModal ad={ad} onClose={() => setShowVideo(false)} />}
     <div onClick={onClick}
       className="rounded-xl cursor-pointer transition-all overflow-hidden group"
       style={{
@@ -514,6 +584,7 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
         </div>
       </div>
     </div>
+    </>
   )
 }
 
