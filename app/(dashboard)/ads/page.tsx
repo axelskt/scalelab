@@ -418,41 +418,9 @@ function formatViews(n: number): string {
 }
 
 // ─── Video Modal ──────────────────────────────────────────────────────────────
-function VideoModal({ ad, onClose, onVideoExtracted }: {
-  ad: ScrapedAd
-  onClose: () => void
-  onVideoExtracted?: (videoUrl: string) => void
-}) {
-  const [extracting, setExtracting] = useState(false)
-  const [extractError, setExtractError] = useState<string | null>(null)
-  const [liveVideoUrl, setLiveVideoUrl] = useState<string | null>(ad.videoUrl || null)
-
-  const hasDirectVideo = !!liveVideoUrl
-  const snapshotUrl = ad.adUrl?.includes('facebook.com/ads') ? ad.adUrl : null
-  const canExtract = ad.source === 'facebook' && !hasDirectVideo && !!ad.adUrl
-
-  const handleExtract = async () => {
-    setExtracting(true)
-    setExtractError(null)
-    try {
-      const r = await fetch('/api/ads/extract-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adId: ad.id }),
-      })
-      const d = await r.json()
-      if (d.videoUrl) {
-        setLiveVideoUrl(d.videoUrl)
-        onVideoExtracted?.(d.videoUrl)
-      } else {
-        setExtractError('Vidéo introuvable — cette pub EU ne l\'expose pas directement.')
-      }
-    } catch {
-      setExtractError('Erreur lors de l\'extraction.')
-    } finally {
-      setExtracting(false)
-    }
-  }
+function VideoModal({ ad, onClose }: { ad: ScrapedAd; onClose: () => void }) {
+  const hasDirectVideo = !!ad.videoUrl
+  const liveVideoUrl = ad.videoUrl || null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}
@@ -463,6 +431,14 @@ function VideoModal({ ad, onClose, onVideoExtracted }: {
         <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
           {hasDirectVideo ? (
             <video src={liveVideoUrl!} controls autoPlay className="w-full h-full" />
+          ) : ad.adUrl ? (
+            <iframe
+              src={ad.adUrl}
+              className="w-full h-full border-0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              sandbox="allow-scripts allow-same-origin allow-popups"
+            />
           ) : ad.thumbnailUrl ? (
             <img src={ad.thumbnailUrl} alt="" className="w-full h-full object-cover opacity-60" />
           ) : (
@@ -496,30 +472,13 @@ function VideoModal({ ad, onClose, onVideoExtracted }: {
             </p>
           )}
 
-          {/* Extract error */}
-          {extractError && (
-            <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.15)' }}>
-              {extractError}
-            </p>
-          )}
-
           {/* CTA buttons */}
-          <div className="flex gap-2 pt-1 flex-wrap">
-            {/* Bouton extraire vidéo — pour les Meta ads sans videoUrl */}
-            {canExtract && (
-              <button onClick={handleExtract} disabled={extracting}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+          <div className="flex gap-2 pt-1">
+            {ad.adUrl && (
+              <a href={ad.adUrl} target="_blank" rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
                 style={{ background: 'linear-gradient(135deg,#F97316,#FB923C)', color: 'white', boxShadow: '0 4px 12px rgba(249,115,22,0.3)' }}>
-                {extracting ? (
-                  <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Extraction...</>
-                ) : '▶ Extraire la vidéo'}
-              </button>
-            )}
-            {(snapshotUrl || ad.adUrl) && (
-              <a href={snapshotUrl || ad.adUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                style={{ border: '1px solid rgba(28,25,23,0.12)', color: 'rgba(28,25,23,0.6)', background: 'white' }}>
-                ↗ {ad.source === 'facebook' ? 'Facebook' : 'TikTok'}
+                ↗ Voir sur {ad.source === 'facebook' ? 'Facebook' : 'TikTok'}
               </a>
             )}
             <button onClick={onClose}
@@ -549,7 +508,7 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
 
   return (
     <>
-    {showVideo && <VideoModal ad={ad} onClose={() => setShowVideo(false)} onVideoExtracted={() => setShowVideo(true)} />}
+    {showVideo && <VideoModal ad={ad} onClose={() => setShowVideo(false)} />}
     <div onClick={onClick}
       className="rounded-xl cursor-pointer transition-all overflow-hidden group"
       style={{
