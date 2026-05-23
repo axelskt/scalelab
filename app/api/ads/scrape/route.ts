@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scrapeFacebookAds, scrapeTikTokAds } from '@/lib/scraper'
-import { addOrUpdateAd, calculateScore, ScrapedAd } from '@/lib/ads-db'
+import { calculateScore, ScrapedAd } from '@/lib/ads-db'
+import { isSupabaseConfigured, upsertAd } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +26,35 @@ export async function POST(request: NextRequest) {
     // Recalculer les scores
     scraped = scraped.map((ad) => ({ ...ad, score: calculateScore(ad) }))
 
-    // Sauvegarder
-    scraped.forEach((ad) => addOrUpdateAd(ad))
+    // Sauvegarder dans Supabase si configuré, sinon fichier local
+    if (isSupabaseConfigured()) {
+      await Promise.all(scraped.map((ad) => upsertAd({
+        id: ad.id,
+        creator_name: ad.advertiser,
+        creator_page_url: ad.advertiserPage,
+        source: ad.source,
+        country: ad.country || country,
+        language: ad.language || 'fr',
+        start_date: ad.startDate,
+        run_days: ad.runDays,
+        ad_text: ad.adText,
+        thumbnail_url: ad.thumbnailUrl,
+        video_url: ad.videoUrl,
+        ad_url: ad.adUrl || '',
+        niche: ad.niche || [],
+        keywords: ad.keywords || [keyword],
+        product_type: ad.analysis?.productType,
+        price: ad.analysis?.price,
+        detected_niche: ad.analysis?.niche,
+        offer: ad.analysis?.offer,
+        analysis: ad.analysis as unknown as Record<string, unknown>,
+        score: ad.score,
+        scraped_at: ad.scrapedAt,
+      })))
+    } else {
+      const { addOrUpdateAd } = await import('@/lib/ads-db')
+      scraped.forEach((ad) => addOrUpdateAd(ad))
+    }
 
     return NextResponse.json({
       success: true,
