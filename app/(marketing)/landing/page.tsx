@@ -135,7 +135,7 @@ function DashboardMockup() {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="flex items-center gap-2 px-3 py-1 rounded-lg text-xs" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>
-            <span>🔒</span> scalelab.io/ads
+            <span>🔒</span> trackads.io/ads
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium" style={{ background: 'rgba(249,115,22,0.15)', color: '#F97316' }}>
@@ -303,7 +303,7 @@ function VSLSection() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-6 tracking-widest uppercase"
             style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.18)', color: '#7C3AED' }}>
-            02 · VSL Generator · Exclusif ScaleLab
+            02 · VSL Generator · Exclusif TrackAds
           </div>
           <h2 className="text-4xl md:text-5xl font-black leading-tight mb-4 text-zinc-900">
             D'une ad qui performe
@@ -549,7 +549,7 @@ function PricingSection() {
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 function FAQSection() {
   const faqs = [
-    { q: "Qu'est-ce qui différencie ScaleLab des autres outils ?", a: "ScaleLab est le seul outil qui combine veille publicitaire ET génération de vidéos VSL motion design. Le score VSL + transcript amélioré par IA est inclus dans tous nos plans. Et nos tarifs sont deux fois inférieurs au marché." },
+    { q: "Qu'est-ce qui différencie TrackAds des autres outils ?", a: "TrackAds est le seul outil qui combine veille publicitaire ET génération de vidéos VSL motion design. Le score VSL + transcript amélioré par IA est inclus dans tous nos plans. Et nos tarifs sont deux fois inférieurs au marché." },
     { q: "Les données sont-elles à jour ?", a: "Oui. Le mode scraping continu met à jour la base toutes les 30 secondes (plan Pro). Le plan Starter reçoit des mises à jour quotidiennes. Les données couvrent Meta Ad Library et TikTok Creative Center." },
     { q: "Comment fonctionne le score VSL par Claude ?", a: "Claude analyse le texte de l'ad sur 5 dimensions : force du hook, impact émotionnel, clarté de la structure, force du CTA et rythme/pacing. Chaque dimension est notée sur 10, avec un score global sur 100 et des suggestions d'amélioration détaillées." },
     { q: "Est-ce que je peux annuler à tout moment ?", a: "Oui, aucun engagement. Annulation en 1 clic depuis votre espace. Votre accès reste actif jusqu'à la fin de la période payée." },
@@ -559,7 +559,7 @@ function FAQSection() {
     <section className="py-24 max-w-3xl mx-auto px-6">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-black mb-3 text-zinc-900">Questions fréquentes</h2>
-        <p className="text-zinc-500">Tout ce qu'il faut savoir avant de rejoindre ScaleLab.</p>
+        <p className="text-zinc-500">Tout ce qu'il faut savoir avant de rejoindre TrackAds.</p>
       </div>
       <div className="space-y-2">
         {faqs.map(({ q, a }, i) => (
@@ -602,7 +602,7 @@ function FinalCTA() {
             <span style={{ color: '#F97316' }}>ce qui scale en ce moment.</span>
           </h2>
           <p className="text-lg mb-8 text-zinc-500">
-            Rejoignez les infopreneurs qui utilisent ScaleLab pour s'inspirer des meilleures pubs et créer des VSL qui convertissent.
+            Rejoignez les infopreneurs qui utilisent TrackAds pour s'inspirer des meilleures pubs et créer des VSL qui convertissent.
           </p>
           <Link href="/login"
             className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-black text-lg text-white transition-all"
@@ -622,7 +622,7 @@ function Footer() {
     <footer className="py-8 px-6" style={{ borderTop: '1px solid #FDEBD0' }}>
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
         <Logo />
-        <p className="text-sm text-zinc-400">© 2025 ScaleLab. Tous droits réservés.</p>
+        <p className="text-sm text-zinc-400">© 2025 TrackAds. Tous droits réservés.</p>
         <div className="flex gap-6">
           {['Mentions légales', 'CGU', 'Affiliation'].map(item => (
             <a key={item} href={item === 'Affiliation' ? '/affiliation' : '#'}
@@ -644,7 +644,7 @@ function Logo() {
         style={{ background: 'linear-gradient(135deg, #F97316, #FB923C)', boxShadow: '0 4px 12px rgba(249,115,22,0.3)' }}>
         <span className="text-white font-black text-sm">S</span>
       </div>
-      <span className="font-black text-lg tracking-tight text-zinc-900">ScaleLab</span>
+      <span className="font-black text-lg tracking-tight text-zinc-900">TrackAds</span>
     </Link>
   )
 }

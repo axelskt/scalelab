@@ -30,7 +30,7 @@ export default function LoginPage() {
                 <circle cx="26" cy="8" r="3" fill="white"/>
               </svg>
             </div>
-            <span className="font-black text-xl tracking-tight" style={{ color: '#1C1917' }}>ScaleLab</span>
+            <span className="font-black text-xl tracking-tight" style={{ color: '#1C1917' }}>TrackAds</span>
           </Link>
         </div>
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
           style={{ background: 'white', border: '1px solid rgba(28,25,23,0.1)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black mb-2" style={{ color: '#1C1917' }}>Bienvenue</h1>
-            <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>Connectez-vous pour accéder à votre espace ScaleLab</p>
+            <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>Connectez-vous pour accéder à votre espace TrackAds</p>
           </div>
 
           {/* Google button */}

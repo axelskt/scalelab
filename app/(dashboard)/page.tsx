@@ -76,7 +76,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm" style={{ color: 'rgba(28,25,23,0.4)' }}>
               {stats.lastScraped
                 ? `Dernière mise à jour le ${new Date(stats.lastScraped).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
-                : 'Bienvenue sur ScaleLab'}
+                : 'Bienvenue sur TrackAds'}
             </p>
           </div>
           <Link href="/ads?scrape=1"

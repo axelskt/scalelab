@@ -53,7 +53,7 @@ export async function GET() {
             </svg>
           </div>
           <span style={{ fontSize: '36px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.03em' }}>
-            ScaleLab
+            TrackAds
           </span>
         </div>
 

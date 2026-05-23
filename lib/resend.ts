@@ -6,7 +6,7 @@ function getResend() {
   return _resend
 }
 
-const FROM = 'ScaleLab <noreply@scalelab.iamanager.fr>'
+const FROM = 'TrackAds <noreply@trackads.iamanager.fr>'
 
 // ─── Email : nouvelle pub qui cartonne ───────────────────────────────────────
 
@@ -39,7 +39,7 @@ export async function sendWinnerAdAlert(opts: {
       <div style="width:36px;height:36px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:10px;display:flex;align-items:center;justify-content:center;">
         <span style="color:white;font-size:16px;">📈</span>
       </div>
-      <span style="font-size:18px;font-weight:900;color:#1C1917;">ScaleLab</span>
+      <span style="font-size:18px;font-weight:900;color:#1C1917;">TrackAds</span>
     </div>
 
     <!-- Alert badge -->
@@ -83,15 +83,15 @@ export async function sendWinnerAdAlert(opts: {
     </div>
 
     <!-- CTA -->
-    <a href="https://scalelab.iamanager.fr/ads"
+    <a href="https://trackads.iamanager.fr/ads"
        style="display:block;background:linear-gradient(135deg,#F97316,#FB923C);color:white;text-decoration:none;text-align:center;padding:14px 24px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:32px;">
       Voir la pub complète →
     </a>
 
     <!-- Footer -->
     <p style="font-size:11px;color:rgba(28,25,23,0.3);text-align:center;margin:0;">
-      ScaleLab · Tu reçois cet email car tu surveilles les pubs winners.<br>
-      <a href="https://scalelab.iamanager.fr/settings" style="color:rgba(28,25,23,0.3);">Se désabonner</a>
+      TrackAds · Tu reçois cet email car tu surveilles les pubs winners.<br>
+      <a href="https://trackads.iamanager.fr/settings" style="color:rgba(28,25,23,0.3);">Se désabonner</a>
     </p>
 
   </div>
@@ -107,7 +107,7 @@ export async function sendWelcomeEmail(opts: { to: string; name: string }) {
   return getResend().emails.send({
     from: FROM,
     to: opts.to,
-    subject: `Bienvenue sur ScaleLab, ${opts.name?.split(' ')[0] || 'ami'} 👋`,
+    subject: `Bienvenue sur TrackAds, ${opts.name?.split(' ')[0] || 'ami'} 👋`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -118,7 +118,7 @@ export async function sendWelcomeEmail(opts: { to: string; name: string }) {
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;">
       <div style="width:36px;height:36px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:10px;">
       </div>
-      <span style="font-size:18px;font-weight:900;color:#1C1917;">ScaleLab</span>
+      <span style="font-size:18px;font-weight:900;color:#1C1917;">TrackAds</span>
     </div>
 
     <h1 style="font-size:24px;font-weight:900;color:#1C1917;margin:0 0 12px;">
@@ -146,13 +146,13 @@ export async function sendWelcomeEmail(opts: { to: string; name: string }) {
       `).join('')}
     </div>
 
-    <a href="https://scalelab.iamanager.fr"
+    <a href="https://trackads.iamanager.fr"
        style="display:block;background:linear-gradient(135deg,#F97316,#FB923C);color:white;text-decoration:none;text-align:center;padding:14px 24px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:32px;">
-      Accéder à ScaleLab →
+      Accéder à TrackAds →
     </a>
 
     <p style="font-size:11px;color:rgba(28,25,23,0.3);text-align:center;margin:0;">
-      ScaleLab · intelligence publicitaire pour infopreneurs
+      TrackAds · intelligence publicitaire pour infopreneurs
     </p>
   </div>
 </body>

@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const BASE_URL = "https://scalelab.iamanager.fr";
+const BASE_URL = "https://trackads.iamanager.fr";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "ScaleLab — Intelligence publicitaire pour infopreneurs",
-    template: "%s | ScaleLab",
+    default: "TrackAds — Intelligence publicitaire pour infopreneurs",
+    template: "%s | TrackAds",
   },
   description:
     "Espionnez les meilleures publicités Meta & TikTok, analysez vos concurrents, suivez les tunnels de vente et générez vos scripts VSL avec l'IA.",
@@ -33,11 +33,11 @@ export const metadata: Metadata = {
     "intelligence publicitaire",
     "infopreneur",
     "tunnel de vente",
-    "ScaleLab",
+    "TrackAds",
   ],
-  authors: [{ name: "ScaleLab", url: BASE_URL }],
-  creator: "ScaleLab",
-  publisher: "ScaleLab",
+  authors: [{ name: "TrackAds", url: BASE_URL }],
+  creator: "TrackAds",
+  publisher: "TrackAds",
   robots: {
     index: true,
     follow: true,
@@ -53,8 +53,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: BASE_URL,
-    siteName: "ScaleLab",
-    title: "ScaleLab — Intelligence publicitaire pour infopreneurs",
+    siteName: "TrackAds",
+    title: "TrackAds — Intelligence publicitaire pour infopreneurs",
     description:
       "Espionnez les meilleures publicités Meta & TikTok, analysez vos concurrents et générez vos scripts VSL avec l'IA.",
     images: [
@@ -62,17 +62,17 @@ export const metadata: Metadata = {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: "ScaleLab — Intelligence publicitaire",
+        alt: "TrackAds — Intelligence publicitaire",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScaleLab — Intelligence publicitaire pour infopreneurs",
+    title: "TrackAds — Intelligence publicitaire pour infopreneurs",
     description:
       "Espionnez les meilleures publicités Meta & TikTok, analysez vos concurrents et générez vos scripts VSL avec l'IA.",
     images: ["/api/og"],
-    creator: "@scalelab",
+    creator: "@trackads",
   },
   icons: {
     icon: [

@@ -8,7 +8,7 @@ function Logo() {
       <div className="w-8 h-8 rounded-lg bg-[#F97316] flex items-center justify-center">
         <span className="text-white font-black text-sm">S</span>
       </div>
-      <span className="font-black text-lg text-[#1C1917] tracking-tight">ScaleLab</span>
+      <span className="font-black text-lg text-[#1C1917] tracking-tight">TrackAds</span>
     </div>
   )
 }
@@ -34,21 +34,21 @@ export default function AffiliationPage() {
       label: 'YouTubers et créateurs',
       icon: '▶',
       title: 'YouTubers et créateurs de contenu',
-      desc: 'Vous créez du contenu sur le business ou la creator economy ? Promouvez ScaleLab à votre audience et aidez-la à découvrir les stratégies derrière les funnels les plus performants.',
+      desc: 'Vous créez du contenu sur le business ou la creator economy ? Promouvez TrackAds à votre audience et aidez-la à découvrir les stratégies derrière les funnels les plus performants.',
       detail: 'Sur YouTube, Instagram ou TikTok, nous vous fournissons des vidéos de démo et des extraits de "spy session" prêts à partager.',
     },
     {
       label: 'Coachs',
       icon: '◎',
       title: 'Coaches & Formateurs',
-      desc: 'Vous accompagnez des infopreneurs ou des entrepreneurs en ligne ? ScaleLab est l\'outil que vos clients cherchent — et vous touchez 30% à vie sur chaque abonnement.',
+      desc: 'Vous accompagnez des infopreneurs ou des entrepreneurs en ligne ? TrackAds est l\'outil que vos clients cherchent — et vous touchez 30% à vie sur chaque abonnement.',
       detail: 'Intégrez-le dans vos formations ou recommandez-le en bonus. Chaque client devient une rente mensuelle automatique.',
     },
     {
       label: 'Agences & freelances',
       icon: '◈',
       title: 'Agences & freelances marketing',
-      desc: 'Vous gérez des campagnes ou créez des pubs pour des infopreneurs ? ScaleLab est votre avantage concurrentiel — et une source de revenus récurrents.',
+      desc: 'Vous gérez des campagnes ou créez des pubs pour des infopreneurs ? TrackAds est votre avantage concurrentiel — et une source de revenus récurrents.',
       detail: 'Facturez plus cher grâce à la data exclusive. Touchez 30% de commission sur chaque client que vous recommandez.',
     },
     {
@@ -56,7 +56,7 @@ export default function AffiliationPage() {
       icon: '✎',
       title: 'Blogueurs & médias spécialisés',
       desc: 'Vous publiez du contenu sur le marketing digital, l\'entrepreneuriat ou l\'infopreunariat ? Votre audience est exactement notre cible.',
-      detail: 'Un article de fond sur ScaleLab peut générer des centaines d\'abonnés — et des milliers d\'euros en commissions récurrentes.',
+      detail: 'Un article de fond sur TrackAds peut générer des centaines d\'abonnés — et des milliers d\'euros en commissions récurrentes.',
     },
   ]
 
@@ -358,7 +358,7 @@ export default function AffiliationPage() {
             </div>
 
             <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center space-y-4">
-              <p className="text-sm text-stone-400">Déjà 500+ partenaires gagnent avec ScaleLab</p>
+              <p className="text-sm text-stone-400">Déjà 500+ partenaires gagnent avec TrackAds</p>
               <div className="flex justify-center gap-1">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-200 to-amber-200 border-2 border-white -ml-2 first:ml-0" />
@@ -413,8 +413,8 @@ export default function AffiliationPage() {
               { q: 'Comment fonctionne le paiement ?', a: 'Vos commissions sont calculées automatiquement et versées le 5 de chaque mois via PayPal ou virement bancaire. Aucune action requise de votre part.' },
               { q: 'Puis-je lancer des ads payantes avec mon lien affilié ?', a: 'Oui, vous pouvez faire de la publicité payante avec votre lien. Nous fournissons aussi des créatives prêtes à l\'emploi pour vos campagnes.' },
               { q: 'Comment fonctionne le tracking du lien ?', a: 'Chaque affilié reçoit un lien unique + un code promo personnel. Les deux sont trackés indépendamment dans votre dashboard temps réel.' },
-              { q: 'Combien de temps dure ma commission ?', a: 'À vie. Tant que votre referral reste abonné à ScaleLab, vous continuez de toucher 30% de son abonnement chaque mois.' },
-              { q: 'Vous avez encore une question ?', a: 'Contactez-nous sur Discord ou par email à affiliation@scalelab.io — réponse sous 24h.' },
+              { q: 'Combien de temps dure ma commission ?', a: 'À vie. Tant que votre referral reste abonné à TrackAds, vous continuez de toucher 30% de son abonnement chaque mois.' },
+              { q: 'Vous avez encore une question ?', a: 'Contactez-nous sur Discord ou par email à affiliation@trackads.io — réponse sous 24h.' },
             ].map(({ q, a }, i) => (
               <details key={i} className="group border border-stone-200 rounded-xl overflow-hidden">
                 <summary className="flex items-center justify-between p-5 cursor-pointer hover:bg-stone-50 transition-colors list-none">
@@ -432,7 +432,7 @@ export default function AffiliationPage() {
       <footer className="border-t border-stone-100 py-8">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           <Logo />
-          <p className="text-sm text-stone-400">© 2025 ScaleLab. Tous droits réservés.</p>
+          <p className="text-sm text-stone-400">© 2025 TrackAds. Tous droits réservés.</p>
           <div className="flex gap-4 text-sm text-stone-400">
             <a href="#" className="hover:text-stone-600">Mentions légales</a>
             <a href="#" className="hover:text-stone-600">CGU</a>

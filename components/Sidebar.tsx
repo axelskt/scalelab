@@ -63,7 +63,7 @@ export default function Sidebar() {
               <circle cx="26" cy="8" r="3" fill="white"/>
             </svg>
           </div>
-          <span className="font-black text-sm tracking-tight" style={{ color: '#1C1917' }}>ScaleLab</span>
+          <span className="font-black text-sm tracking-tight" style={{ color: '#1C1917' }}>TrackAds</span>
         </Link>
       </div>
 

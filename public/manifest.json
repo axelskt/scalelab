@@ -1,6 +1,6 @@
 {
-  "name": "ScaleLab",
-  "short_name": "ScaleLab",
+  "name": "TrackAds",
+  "short_name": "TrackAds",
   "description": "Intelligence publicitaire pour infopreneurs",
   "start_url": "/",
   "display": "standalone",

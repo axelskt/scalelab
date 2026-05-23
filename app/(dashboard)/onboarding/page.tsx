@@ -67,7 +67,7 @@ export default function OnboardingPage() {
             Bienvenue, {firstName} 👋
           </h1>
           <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>
-            Voici ce que tu peux faire avec ScaleLab — ça prend 2 minutes.
+            Voici ce que tu peux faire avec TrackAds — ça prend 2 minutes.
           </p>
         </div>
 
