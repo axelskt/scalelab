@@ -158,14 +158,28 @@ export async function scrapeFBAdLibraryFetch(
         const runDays = startDate ? Math.round((Date.now() - new Date(startDate).getTime()) / 86400000) : 30
 
         // Construire le texte de la pub
+        // Note : en Europe (RGPD), ad_creative_bodies est souvent vide
+        // On garde quand même l'ad si le keyword lui-même est infopreneur
         const adText = [...bodies, ...titles, ...captions].filter(Boolean).join('\n').trim()
-        if (!adText || adText.length < 20) continue
-        if (!isInfopreneur(adText)) continue
 
-        const niche = detectNiche(adText)
-        const productType = detectProductType(adText)
-        const price = detectPrice(adText)
-        const lang = detectLanguage(adText)
+        // Si pas de texte, utiliser le keyword comme fallback (l'ad a été trouvée via ce keyword)
+        const effectiveText = adText.length >= 10 ? adText : `${keyword} formation coaching programme`
+
+        // Filtrer : soit le texte contient des mots infopreneurs, soit on fait confiance au keyword
+        const INFOPRENEUR_KEYWORDS_SEARCH = [
+          'formation', 'coaching', 'masterclass', 'programme', 'méthode',
+          'revenus passifs', 'business en ligne', 'liberté financière',
+          'dropshipping', 'copywriting', 'freelance', 'saas', 'formation gratuite',
+        ]
+        const keywordIsInfopreneur = INFOPRENEUR_KEYWORDS_SEARCH.some(kw =>
+          keyword.toLowerCase().includes(kw)
+        )
+        if (!keywordIsInfopreneur && !isInfopreneur(effectiveText)) continue
+
+        const niche = detectNiche(effectiveText)
+        const productType = detectProductType(effectiveText)
+        const price = detectPrice(effectiveText)
+        const lang = adText.length >= 10 ? detectLanguage(adText) : 'fr'
 
         const id = generateId('facebook', pageName, startDate || Date.now().toString())
 
@@ -178,7 +192,7 @@ export async function scrapeFBAdLibraryFetch(
           country,
           startDate,
           runDays,
-          adText,
+          adText: adText || `[Pub ${keyword} — texte non disponible EU]`,
           adUrl: snapshotUrl || pageUrl,
           niche: [niche],
           keywords: [keyword],
@@ -186,10 +200,10 @@ export async function scrapeFBAdLibraryFetch(
           score: 0,
           analysis: {
             pattern: 'PAS',
-            hook: adText.split('\n')[0].slice(0, 120),
+            hook: adText ? adText.split('\n')[0].slice(0, 120) : keyword,
             mainPain: '',
             solution: '',
-            offer: adText.slice(0, 200),
+            offer: adText ? adText.slice(0, 200) : keyword,
             productType,
             price,
             niche,
