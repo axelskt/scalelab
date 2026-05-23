@@ -6,12 +6,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
-  const auth = req.nextUrl.searchParams.get('secret')
-  const secret = process.env.CRON_SECRET
-  if (secret && auth !== secret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const accessToken = process.env.META_ACCESS_TOKEN
 
   if (!accessToken) {
