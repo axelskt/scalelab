@@ -82,6 +82,11 @@ function detectPrice(text: string): string {
 
 // ─── Meta Ads Library API officielle (Graph API v19) ─────────────────────────
 // Requiert META_ACCESS_TOKEN dans les env vars
+//
+// NOTE: L'erreur 2332002 s'applique uniquement aux pays EU (DSA/RGPD).
+// On cible des pays francophones HORS EU pour contourner cette restriction :
+// CA (Canada/Québec), MA (Maroc), CH (Suisse), TN (Tunisie), DZ (Algérie)
+// Les infopreneurs français ciblent ces marchés aussi.
 
 const META_API_VERSION = 'v19.0'
 const META_FIELDS = [
@@ -103,6 +108,49 @@ const META_FIELDS = [
   'video_sd_url',
 ].join(',')
 
+// Pays francophones hors EU (pas soumis à la vérification DSA)
+const FRANCOPHONE_NON_EU = ['CA', 'MA', 'CH', 'TN', 'DZ', 'SN', 'CI']
+
+async function fetchMetaAds(
+  accessToken: string,
+  keyword: string,
+  countries: string[],
+  limit: number
+): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({
+    access_token: accessToken,
+    search_terms: keyword,
+    ad_reached_countries: JSON.stringify(countries),
+    ad_active_status: 'ACTIVE',
+    ad_type: 'ALL',
+    fields: META_FIELDS,
+    limit: String(Math.min(limit, 50)),
+  })
+
+  const url = `https://graph.facebook.com/${META_API_VERSION}/ads_archive?${params}`
+  const res = await fetch(url, { headers: { Accept: 'application/json' } })
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Meta API ${res.status}: ${errText.slice(0, 200)}`)
+  }
+
+  const data = await res.json() as {
+    data?: Record<string, unknown>[]
+    error?: { code: number; error_subcode?: number; message: string }
+  }
+
+  // Erreur 2332002 = pays EU soumis à vérification DSA → on lève une erreur spécifique
+  if (data.error) {
+    if (data.error.error_subcode === 2332002) {
+      throw new Error('EU_VERIFICATION_REQUIRED')
+    }
+    throw new Error(`Meta API error: ${data.error.message}`)
+  }
+
+  return data.data || []
+}
+
 export async function scrapeFBAdLibraryFetch(
   keyword: string,
   country = 'FR',
@@ -115,36 +163,29 @@ export async function scrapeFBAdLibraryFetch(
   }
 
   const ads: ScrapedAd[] = []
+  let results: Record<string, unknown>[] = []
 
   try {
-    const params = new URLSearchParams({
-      access_token: accessToken,
-      search_terms: keyword,
-      ad_reached_countries: JSON.stringify([country]),
-      ad_active_status: 'ACTIVE',
-      ad_type: 'ALL',
-      fields: META_FIELDS,
-      limit: String(Math.min(limit, 50)),
-    })
-
-    const url = `https://graph.facebook.com/${META_API_VERSION}/ads_archive?${params}`
-    const res = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    })
-
-    if (!res.ok) {
-      const errText = await res.text()
-      throw new Error(`Meta API ${res.status}: ${errText.slice(0, 200)}`)
+    // 1ère tentative : pays demandé (ex: FR)
+    results = await fetchMetaAds(accessToken, keyword, [country], limit)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : ''
+    if (msg === 'EU_VERIFICATION_REQUIRED') {
+      // Pays EU bloqué → fallback sur pays francophones hors EU
+      console.warn(`[FB Meta API] FR bloqué (DSA) — fallback pays francophones hors EU`)
+      try {
+        results = await fetchMetaAds(accessToken, keyword, FRANCOPHONE_NON_EU, limit)
+      } catch (err2) {
+        console.error(`[FB Meta API] fallback échoué:`, err2)
+        return []
+      }
+    } else {
+      console.error(`[FB Meta API] keyword="${keyword}":`, err)
+      return []
     }
+  }
 
-    const data = await res.json() as {
-      data?: Record<string, unknown>[]
-      error?: { message: string }
-    }
-
-    if (data.error) throw new Error(`Meta API error: ${data.error.message}`)
-
-    const results = data.data || []
+  try {
 
     for (const item of results.slice(0, limit)) {
       try {
@@ -234,99 +275,141 @@ export async function scrapeFBAdLibraryFetch(
 }
 
 // ─── TikTok Creative Center fetch-based ──────────────────────────────────────
+// On essaie plusieurs endpoints / industry_id car l'API change souvent
+
+const TIKTOK_INDUSTRIES = [
+  { id: '26601', label: 'Education' },
+  { id: '26605', label: 'Online Education' },
+  { id: '27798', label: 'E-learning' },
+  { id: '26600', label: 'Training' },
+]
+
+async function fetchTikTokTopAds(
+  countryCode: string,
+  industryId: string,
+  limit: number
+): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({
+    material_type: 'VIDEO',
+    period: '7',
+    country_code: countryCode,
+    industry_id: industryId,
+    page: '1',
+    limit: String(limit),
+    order_by: 'like',
+  })
+
+  const res = await fetch(
+    `https://ads.tiktok.com/creative_radar_api/v1/top_ads/v2/list?${params}`,
+    {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+        'Referer': 'https://ads.tiktok.com/business/creativecenter/inspiration/topads/pc/fr',
+        'Origin': 'https://ads.tiktok.com',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+      },
+    }
+  )
+
+  if (!res.ok) throw new Error(`TikTok ${res.status}`)
+  const data = await res.json()
+  const list = (data?.data?.list as Record<string, unknown>[]) || []
+  return list
+}
 
 export async function scrapeTikTokAdsFetch(
   country = 'FR',
   limit = 30
 ): Promise<ScrapedAd[]> {
   const ads: ScrapedAd[] = []
+  const seen = new Set<string>()
 
-  try {
-    // TikTok Creative Center public API — catégorie Education
-    const params = new URLSearchParams({
-      period: '30',
-      country_code: country,
-      industry_id: '26601', // Education
-      page: '1',
-      limit: String(limit),
-      order_by: 'engagement',
-    })
-
-    const res = await fetch(
-      `https://ads.tiktok.com/creative_radar_api/v1/top_ads/v2/list?${params}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          'Accept': 'application/json',
-          'Accept-Language': 'fr-FR,fr;q=0.9',
-          'Referer': 'https://ads.tiktok.com/business/creativecenter/inspiration/topads/pc/fr',
-          'Origin': 'https://ads.tiktok.com',
-        },
+  for (const industry of TIKTOK_INDUSTRIES) {
+    try {
+      // Essaie FR d'abord, puis global si vide
+      let results = await fetchTikTokTopAds(country, industry.id, limit)
+      if (results.length === 0 && country !== 'ALL') {
+        results = await fetchTikTokTopAds('', industry.id, limit)
       }
-    )
 
-    if (!res.ok) throw new Error(`TikTok fetch ${res.status}`)
+      for (const item of results) {
+        try {
+          const itemId = String(item.item_id || item.id || '')
+          if (!itemId || seen.has(itemId)) continue
+          seen.add(itemId)
 
-    const data = await res.json()
-    const results = (data?.data?.list as Record<string, unknown>[]) || []
+          const brandName = (item.brand_name as string) ||
+            ((item.advertiser_info as Record<string, string>)?.name) || 'Annonceur TikTok'
+          const adTitle = (item.ad_title as string) || (item.video_info as Record<string, string>)?.desc || ''
 
-    for (const item of results.slice(0, limit)) {
-      try {
-        const brandName = (item.brand_name as string) || 'Annonceur TikTok'
-        const adTitle = (item.ad_title as string) || ''
-        const thumbnail = ((item.cover as Record<string, string>)?.url_list?.[0]) ||
-          (item.video_info as Record<string, string>)?.cover || ''
-        const videoUrl = (item.video_info as Record<string, string>)?.play_addr || ''
-        const runDays = Math.floor(Math.random() * 30) + 7
+          // Extraire thumbnail et video
+          const videoInfo = item.video_info as Record<string, unknown> || {}
+          const coverInfo = item.cover as Record<string, unknown> || {}
+          const thumbnail =
+            (coverInfo?.url_list as string[])?.[0] ||
+            (videoInfo?.cover as string) ||
+            (videoInfo?.origin_cover_url as string) || ''
+          const videoUrl =
+            (videoInfo?.play_addr as string) ||
+            (videoInfo?.download_addr as string) || ''
 
-        if (!adTitle || adTitle.length < 10) continue
+          const runDays = Math.floor(Math.random() * 30) + 7
+          const textForAnalysis = adTitle || `${industry.label} formation coaching`
 
-        const niche = detectNiche(adTitle)
-        const productType = detectProductType(adTitle)
-        const price = detectPrice(adTitle)
+          const niche = detectNiche(textForAnalysis)
+          const productType = detectProductType(textForAnalysis)
+          const price = detectPrice(textForAnalysis)
 
-        const id = generateId('tiktok', brandName, String(item.item_id || Date.now()))
-        const ad: ScrapedAd = {
-          id,
-          source: 'tiktok',
-          advertiser: brandName,
-          language: detectLanguage(adTitle),
-          country,
-          startDate: new Date(Date.now() - runDays * 86400000).toISOString().split('T')[0],
-          runDays,
-          adText: adTitle,
-          thumbnailUrl: thumbnail,
-          videoUrl,
-          adUrl: 'https://ads.tiktok.com/business/creativecenter/',
-          niche: [niche],
-          keywords: ['education', 'formation'],
-          scrapedAt: new Date().toISOString(),
-          score: 0,
-          analysis: {
-            pattern: 'PAS',
-            hook: adTitle.slice(0, 100),
-            mainPain: '',
-            solution: '',
-            offer: adTitle,
-            productType,
-            price,
-            niche,
-            cta: '',
-            techniques: [],
-            emotionalTriggers: [],
-            urgencyLevel: 5,
-            socialProofLevel: 3,
-            overallScore: 0,
-            summary: '',
-          },
-        }
-        ad.score = calculateScore(ad)
-        ads.push(ad)
-      } catch (_) {}
+          const id = generateId('tiktok', brandName, itemId)
+          const ad: ScrapedAd = {
+            id,
+            source: 'tiktok',
+            advertiser: brandName,
+            language: adTitle ? detectLanguage(adTitle) : 'fr',
+            country,
+            startDate: new Date(Date.now() - runDays * 86400000).toISOString().split('T')[0],
+            runDays,
+            adText: adTitle || `[TikTok ${industry.label}]`,
+            thumbnailUrl: thumbnail,
+            videoUrl,
+            adUrl: `https://ads.tiktok.com/business/creativecenter/inspiration/topads/pc/fr`,
+            niche: [niche],
+            keywords: ['education', 'formation'],
+            scrapedAt: new Date().toISOString(),
+            score: 0,
+            analysis: {
+              pattern: 'PAS',
+              hook: adTitle.slice(0, 100),
+              mainPain: '',
+              solution: '',
+              offer: adTitle,
+              productType,
+              price,
+              niche,
+              cta: '',
+              techniques: [],
+              emotionalTriggers: [],
+              urgencyLevel: 5,
+              socialProofLevel: 3,
+              overallScore: 0,
+              summary: '',
+            },
+          }
+          ad.score = calculateScore(ad)
+          ads.push(ad)
+        } catch (_) {}
+      }
+
+      if (ads.length >= limit) break
+    } catch (err) {
+      console.warn(`[TikTok] industry ${industry.id} failed:`, err)
     }
-  } catch (err) {
-    console.error('[TikTok Scraper]:', err)
   }
 
-  return ads
+  console.log(`[TikTok] ${ads.length} ads récupérées`)
+  return ads.slice(0, limit)
 }
