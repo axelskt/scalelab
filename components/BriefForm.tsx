@@ -1,5 +1,6 @@
 'use client'
 import { ProductBrief, VideoFormat, VSLPattern } from '@/lib/types'
+import SpeechInput from '@/components/SpeechInput'
 
 interface Props {
   brief: ProductBrief
@@ -61,7 +62,14 @@ export default function BriefForm({ brief, onChange, onGenerate, loading }: Prop
         </div>
 
         <div>
-          <label style={labelStyle}>Douleur principale *</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Douleur principale *</label>
+            <SpeechInput
+              lang={brief.language === 'en' ? 'en-US' : 'fr-FR'}
+              placeholder="Dicter"
+              onTranscript={(t) => set('mainPain', (brief.mainPain ? brief.mainPain + ' ' : '') + t)}
+            />
+          </div>
           <textarea
             style={{ ...inputStyle, resize: 'none', height: 64 }}
             placeholder="ex: Travaillent 60h/semaine sans résultats, ne savent pas comment..."
@@ -71,7 +79,14 @@ export default function BriefForm({ brief, onChange, onGenerate, loading }: Prop
         </div>
 
         <div>
-          <label style={labelStyle}>Ta solution *</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Ta solution *</label>
+            <SpeechInput
+              lang={brief.language === 'en' ? 'en-US' : 'fr-FR'}
+              placeholder="Dicter"
+              onTranscript={(t) => set('solution', (brief.solution ? brief.solution + ' ' : '') + t)}
+            />
+          </div>
           <textarea
             style={{ ...inputStyle, resize: 'none', height: 64 }}
             placeholder="ex: Méthode en 3 étapes pour générer 10k€/mois en utilisant l'IA..."
@@ -81,7 +96,14 @@ export default function BriefForm({ brief, onChange, onGenerate, loading }: Prop
         </div>
 
         <div>
-          <label style={labelStyle}>L'offre (ce qu'ils reçoivent) *</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>L'offre (ce qu'ils reçoivent) *</label>
+            <SpeechInput
+              lang={brief.language === 'en' ? 'en-US' : 'fr-FR'}
+              placeholder="Dicter"
+              onTranscript={(t) => set('offer', (brief.offer ? brief.offer + ' ' : '') + t)}
+            />
+          </div>
           <textarea
             style={{ ...inputStyle, resize: 'none', height: 64 }}
             placeholder="ex: Formation complète 8 modules + templates IA + coaching live mensuel..."

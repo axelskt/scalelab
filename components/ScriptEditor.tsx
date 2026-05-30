@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { VSLScript, Scene, SceneType, AnimationType, SceneStyle } from '@/lib/types'
+import VoicePreview from '@/components/VoicePreview'
 
 interface Props {
   script: VSLScript
@@ -185,7 +186,14 @@ export default function ScriptEditor({ script, onChange, onRender, renderLoading
               </div>
 
               <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Headline *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-zinc-500">Headline *</label>
+                  <VoicePreview
+                    text={[activeSceneData.content.headline, activeSceneData.content.subtext, ...(activeSceneData.content.bullets || [])].filter(Boolean).join('. ')}
+                    language={script.meta?.language || 'fr'}
+                    compact
+                  />
+                </div>
                 <textarea
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:border-violet-500 resize-none h-16"
                   value={activeSceneData.content.headline}
