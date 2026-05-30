@@ -80,14 +80,15 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   )
 }
 
-function Field({ label, value, disabled }: { label: string; value: string; disabled?: boolean }) {
+function Field({ label, value, disabled, onChange }: { label: string; value: string; disabled?: boolean; onChange?: (v: string) => void }) {
   return (
     <div className="mb-3">
       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'rgba(28,25,23,0.55)', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 10 }}>
         {label}
       </label>
       <input
-        defaultValue={value}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         disabled={disabled}
         className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-all outline-none"
         style={{
@@ -102,11 +103,32 @@ function Field({ label, value, disabled }: { label: string; value: string; disab
 }
 
 function ProfileTab({ name, email, image }: { name: string; email: string; image?: string | null }) {
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved]     = useState(false)
+  const [saving, setSaving]   = useState(false)
+  const [editName, setEditName] = useState(name)
+  const [error, setError]     = useState<string | null>(null)
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+  const handleSave = async () => {
+    if (!editName.trim() || editName === name) return
+    setSaving(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editName }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || 'Erreur serveur')
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -115,11 +137,11 @@ function ProfileTab({ name, email, image }: { name: string; email: string; image
         <div className="flex items-center gap-4">
           <div className="relative">
             {image ? (
-              <img src={image} alt={name} className="w-16 h-16 rounded-full object-cover" />
+              <img src={image} alt={editName} className="w-16 h-16 rounded-full object-cover" />
             ) : (
               <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black"
                 style={{ background: 'linear-gradient(135deg, #F97316, #7C3AED)' }}>
-                {name.charAt(0).toUpperCase()}
+                {editName.charAt(0).toUpperCase()}
               </div>
             )}
             <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
@@ -128,15 +150,18 @@ function ProfileTab({ name, email, image }: { name: string; email: string; image
             </button>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: '#1C1917' }}>{name}</p>
+            <p className="text-sm font-semibold" style={{ color: '#1C1917' }}>{editName}</p>
             <p className="text-xs mt-0.5" style={{ color: 'rgba(28,25,23,0.4)' }}>{email}</p>
           </div>
         </div>
       </Section>
 
       <Section title="Informations">
-        <Field label="Nom" value={name} />
+        <Field label="Nom" value={editName} onChange={(v) => setEditName(v)} />
         <Field label="Email" value={email} disabled />
+        {error && (
+          <p className="text-xs mt-2" style={{ color: '#EF4444' }}>⚠️ {error}</p>
+        )}
         <div className="flex items-center justify-end gap-3 mt-4">
           {saved && (
             <span className="text-xs font-medium flex items-center gap-1.5" style={{ color: '#16A34A' }}>
@@ -145,10 +170,11 @@ function ProfileTab({ name, email, image }: { name: string; email: string; image
           )}
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+            disabled={saving || !editName.trim() || editName === name}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40"
             style={{ background: saved ? '#16A34A' : '#F97316', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}
           >
-            {saved ? '✓ Enregistré' : 'Enregistrer le profil'}
+            {saving ? 'Enregistrement...' : saved ? '✓ Enregistré' : 'Enregistrer le profil'}
           </button>
         </div>
       </Section>

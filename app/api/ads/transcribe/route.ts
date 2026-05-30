@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 import { loadAds, saveAds, calculateScore, detectLanguage, estimateEngagement } from '@/lib/ads-db'
 import { generateTranscriptionFromAdText } from '@/lib/transcription'
 
 export const maxDuration = 120
 
 export async function POST(request: NextRequest) {
+  const authCheck = await requireAuth()
+  if (authCheck.error) return authCheck.error
+
   try {
     const { adId } = await request.json()
 

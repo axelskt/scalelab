@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateVSLScript } from '@/lib/claude'
 import { ProductBrief } from '@/lib/types'
+import { requirePlan } from '@/lib/api-auth'
 
 export const maxDuration = 120
 
 export async function POST(request: NextRequest) {
+  const auth = await requirePlan('vsl')
+  if (auth.error) return auth.error
+
   try {
     const brief: ProductBrief = await request.json()
 

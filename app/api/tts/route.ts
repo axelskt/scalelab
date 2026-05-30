@@ -16,6 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 
 const GEMINI_API_KEY = process.env.GOOGLE_AI_API_KEY
 const GEMINI_TTS_MODEL = 'gemini-2.5-flash-preview-tts'
@@ -31,6 +32,9 @@ const VOICE_STYLES: Record<string, string> = {
 }
 
 export async function POST(request: NextRequest) {
+  const authCheck = await requireAuth()
+  if (authCheck.error) return authCheck.error
+
   if (!GEMINI_API_KEY) {
     return NextResponse.json({ error: 'GOOGLE_AI_API_KEY manquant' }, { status: 500 })
   }

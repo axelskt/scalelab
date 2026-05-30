@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { requirePlan } from '@/lib/api-auth'
 
 const client = new Anthropic({ timeout: 60_000 })
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
+  const auth = await requirePlan('brief')
+  if (auth.error) return auth.error
+
   try {
     const { analysis, url } = await request.json()
 

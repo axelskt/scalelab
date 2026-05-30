@@ -217,7 +217,9 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-semibold truncate" style={{ color: '#1C1917' }}>{userName}</p>
-            <p className="text-xs truncate" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10 }}>Free</p>
+            <p className="text-xs truncate capitalize" style={{ color: 'rgba(28,25,23,0.35)', fontSize: 10 }}>
+              {((session?.user as { plan?: string })?.plan ?? 'Free')}
+            </p>
           </div>
           <div className="flex-shrink-0" style={{ color: 'rgba(28,25,23,0.3)' }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

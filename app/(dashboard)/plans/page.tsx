@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { Check, X, ArrowRight, Sparkles } from 'lucide-react'
 
 const PLANS = [
@@ -51,10 +52,9 @@ const PLANS = [
   },
 ]
 
-// Simule le plan actuel de l'utilisateur — à remplacer par une vraie vérification DB
-const CURRENT_PLAN = 'free'
-
 export default function PlansPage() {
+  const { data: session } = useSession()
+  const CURRENT_PLAN = (session?.user as { plan?: string })?.plan ?? 'free'
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
 
   return (

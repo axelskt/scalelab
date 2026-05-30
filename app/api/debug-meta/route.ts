@@ -1,13 +1,22 @@
 /**
  * GET /api/debug-meta
  * Teste la connexion Meta Ads Library API et retourne la réponse brute
- * Protégé par CRON_SECRET
+ * Protégé par CRON_SECRET (header Authorization: Bearer <secret>)
  */
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
-  const accessToken = process.env.META_ACCESS_TOKEN
+  // Protection par CRON_SECRET obligatoire
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET non configuré' }, { status: 500 })
+  }
+  const auth = req.headers.get('authorization')
+  if (auth !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  const accessToken = process.env.META_ACCESS_TOKEN
   if (!accessToken) {
     return NextResponse.json({ error: 'META_ACCESS_TOKEN manquant dans les env vars Vercel' })
   }
@@ -30,7 +39,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       status: res.status,
       ok: res.ok,
-      token_prefix: accessToken.slice(0, 20) + '...',
+      token_prefix: accessToken.slice(0, 10) + '...[masqué]',
       raw_response: data,
       ads_count: data?.data?.length ?? 0,
     })

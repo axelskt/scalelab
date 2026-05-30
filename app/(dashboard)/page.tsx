@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
 interface Stats {
@@ -49,6 +50,7 @@ const QUICK_ACTIONS = [
 ]
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
   const [stats, setStats] = useState<Stats>({ totalAds: 0, totalCreators: 0, totalScraped: 0 })
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function DashboardPage() {
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
+  const firstName = session?.user?.name?.split(' ')[0] ?? ''
 
   return (
     <div className="min-h-full" style={{ background: '#FFFBF7' }}>
@@ -72,7 +75,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-black tracking-tight" style={{ color: '#1C1917' }}>{greeting}, Axel.</h1>
+            <h1 className="text-2xl font-black tracking-tight" style={{ color: '#1C1917' }}>{greeting}{firstName ? `, ${firstName}` : ''}.</h1>
             <p className="mt-1 text-sm" style={{ color: 'rgba(28,25,23,0.4)' }}>
               {stats.lastScraped
                 ? `Dernière mise à jour le ${new Date(stats.lastScraped).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`

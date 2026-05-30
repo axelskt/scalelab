@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 import { scrapeFacebookAds, scrapeTikTokAds } from '@/lib/scraper'
 import { calculateScore, ScrapedAd } from '@/lib/ads-db'
 import { isSupabaseConfigured, upsertAd } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
+  const authCheck = await requireAuth()
+  if (authCheck.error) return authCheck.error
+
   try {
     const { keyword, source = 'facebook', country = 'FR', maxAds = 15 } = await request.json()
 

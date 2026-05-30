@@ -16,12 +16,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isOnDashboard = nextUrl.pathname.startsWith('/app') ||
-        (nextUrl.pathname === '/' && !nextUrl.pathname.startsWith('/landing') && !nextUrl.pathname.startsWith('/login'))
-      if (isOnDashboard) {
-        if (isLoggedIn) return true
-        return false
-      }
+      // Pages publiques accessibles sans auth
+      const publicPaths = ['/login', '/privacy']
+      const isPublic = publicPaths.some(p => nextUrl.pathname.startsWith(p))
+      if (isPublic) return true
+      // Tout le reste nécessite d'être connecté
+      if (!isLoggedIn) return false
       return true
     },
     async jwt({ token, user, trigger }) {

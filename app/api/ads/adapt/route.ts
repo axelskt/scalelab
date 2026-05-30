@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 import { adaptAdToProduct } from '@/lib/ad-analyzer'
 import { loadAds } from '@/lib/ads-db'
 
 export async function POST(request: NextRequest) {
+  const authCheck = await requireAuth()
+  if (authCheck.error) return authCheck.error
+
   try {
     const { adId, targetProduct, targetAudience } = await request.json()
 
