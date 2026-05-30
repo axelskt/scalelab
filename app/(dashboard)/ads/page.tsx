@@ -38,6 +38,9 @@ export default function AdsPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null)
   const [transcribingId, setTranscribingId] = useState<string | null>(null)
   const [adaptModal, setAdaptModal] = useState(false)
+
+  // Favoris
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set())
   const [adaptProduct, setAdaptProduct] = useState('')
   const [adaptAudience, setAdaptAudience] = useState('')
   const [adaptedScript, setAdaptedScript] = useState<string | null>(null)
@@ -70,6 +73,44 @@ export default function AdsPage() {
   }, [])
 
   useEffect(() => { fetchAds() }, [fetchAds])
+
+  // Charger les favoris (IDs uniquement pour les toggles)
+  useEffect(() => {
+    fetch('/api/favorites')
+      .then(r => r.json())
+      .then(d => { if (d.ids) setFavoritedIds(new Set(d.ids)) })
+      .catch(() => {})
+  }, [])
+
+  const handleToggleFavorite = useCallback(async (ad: ScrapedAd) => {
+    const isFav = favoritedIds.has(ad.id)
+    // Optimistic update
+    setFavoritedIds(prev => {
+      const next = new Set(prev)
+      if (isFav) next.delete(ad.id)
+      else next.add(ad.id)
+      return next
+    })
+    try {
+      if (isFav) {
+        await fetch(`/api/favorites/${ad.id}`, { method: 'DELETE' })
+      } else {
+        await fetch('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ad }),
+        })
+      }
+    } catch {
+      // Rollback optimistic update si erreur
+      setFavoritedIds(prev => {
+        const next = new Set(prev)
+        if (isFav) next.add(ad.id)
+        else next.delete(ad.id)
+        return next
+      })
+    }
+  }, [favoritedIds])
 
   // Auto-scrape continu
   useEffect(() => {
@@ -358,6 +399,8 @@ export default function AdsPage() {
                 analyzing={analyzingId === selectedAd.id}
                 transcribing={transcribingId === selectedAd.id}
                 onAdapt={() => { setAdaptModal(true); setAdaptedScript(null) }}
+                isFavorited={favoritedIds.has(selectedAd.id)}
+                onToggleFavorite={() => handleToggleFavorite(selectedAd)}
               />
             </div>
           </>
@@ -590,9 +633,10 @@ function AdCard({ ad, selected, onClick }: { ad: ScrapedAd; selected: boolean; o
 }
 
 // ─── Ad Detail Panel ───────────────────────────────────────────────────────────
-function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transcribing, onAdapt }: {
+function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transcribing, onAdapt, isFavorited, onToggleFavorite }: {
   ad: ScrapedAd; onClose: () => void; onAnalyze: () => void; onTranscribe: () => void
   analyzing: boolean; transcribing: boolean; onAdapt: () => void
+  isFavorited?: boolean; onToggleFavorite?: () => void
 }) {
   const src = SOURCE_BADGE[ad.source] ?? SOURCE_BADGE['facebook']
   const startDate = new Date(ad.startDate)
@@ -645,11 +689,17 @@ function AdDetailPanel({ ad, onClose, onAnalyze, onTranscribe, analyzing, transc
               <p className="text-xs" style={{ color: 'rgba(28,25,23,0.4)' }}>{src.label}</p>
             </div>
           </div>
-          <button className="text-xs px-3 py-1.5 rounded-full font-semibold transition-all"
-            style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316', border: '1px solid rgba(249,115,22,0.2)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,115,22,0.15)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(249,115,22,0.08)'}>
-            ☆ Favori
+          <button
+            onClick={onToggleFavorite}
+            className="text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1"
+            style={{
+              background: isFavorited ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.06)',
+              color: isFavorited ? '#F97316' : 'rgba(249,115,22,0.7)',
+              border: `1px solid ${isFavorited ? 'rgba(249,115,22,0.4)' : 'rgba(249,115,22,0.15)'}`,
+            }}
+            title={isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          >
+            {isFavorited ? '★' : '☆'} {isFavorited ? 'Favori' : 'Favoris'}
           </button>
         </div>
 
