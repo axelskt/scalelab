@@ -17,7 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       // Pages publiques accessibles sans auth
-      const publicPaths = ['/login', '/privacy']
+      const publicPaths = ['/login', '/privacy', '/landing', '/affiliation']
       const isPublic = publicPaths.some(p => nextUrl.pathname.startsWith(p))
       if (isPublic) return true
       // Tout le reste nécessite d'être connecté
