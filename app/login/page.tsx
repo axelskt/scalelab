@@ -92,7 +92,7 @@ function LoginForm() {
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(28,25,23,0.1)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(28,25,23,0.06)'}
         >
-          ← Utiliser une autre adresse
+          Utiliser une autre adresse
         </button>
       </div>
     )
