@@ -87,10 +87,12 @@ function LoginForm() {
         <p className="text-xs" style={{ color: 'rgba(28,25,23,0.35)' }}>Le lien expire dans 15 minutes.</p>
         <button
           onClick={() => { setEmailSent(false); setEmail('') }}
-          className="text-xs underline underline-offset-2"
-          style={{ color: 'rgba(28,25,23,0.4)' }}
+          className="text-xs font-medium px-4 py-2 rounded-lg transition-all"
+          style={{ background: 'rgba(28,25,23,0.06)', color: 'rgba(28,25,23,0.5)', border: '1px solid rgba(28,25,23,0.08)' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(28,25,23,0.1)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(28,25,23,0.06)'}
         >
-          Utiliser une autre adresse
+          ← Utiliser une autre adresse
         </button>
       </div>
     )

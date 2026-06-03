@@ -6,7 +6,7 @@ function getResend() {
   return _resend
 }
 
-const FROM = 'TrackAds <noreply@trackads.iamanager.fr>'
+const FROM = 'TrackAds <noreply@scalelab.iamanager.fr>'
 
 // ─── Email : nouvelle pub qui cartonne ───────────────────────────────────────
 
