@@ -1,24 +1,191 @@
 'use client'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
-export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
+function LoginForm() {
+  const [loading, setLoading]       = useState(false)
+  const [email, setEmail]           = useState('')
+  const [emailSent, setEmailSent]   = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [error, setError]           = useState<string | null>(null)
+  const searchParams                 = useSearchParams()
+  const router                       = useRouter()
+
+  // Auto-connexion via magic link (token dans URL)
+  useEffect(() => {
+    const token = searchParams.get('token')
+    const emailParam = searchParams.get('email')
+    if (token && emailParam) {
+      setLoading(true)
+      signIn('magic-link', {
+        email: emailParam,
+        token,
+        callbackUrl: '/',
+        redirect: true,
+      })
+    }
+  }, [searchParams])
 
   async function handleGoogle() {
     setLoading(true)
+    setError(null)
     await signIn('google', { callbackUrl: '/' })
   }
 
+  async function handleMagicLink(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setEmailLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur envoi')
+      setEmailSent(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur')
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  // Si token dans URL → écran de chargement
+  if (searchParams.get('token')) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center"
+          style={{ background: 'rgba(249,115,22,0.1)' }}>
+          <svg className="animate-spin h-6 w-6" style={{ color: '#F97316' }} viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+        </div>
+        <p className="text-sm font-semibold" style={{ color: '#1C1917' }}>Connexion en cours…</p>
+      </div>
+    )
+  }
+
+  // Après envoi du magic link
+  if (emailSent) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-2xl"
+          style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)' }}>
+          📬
+        </div>
+        <h2 className="text-lg font-black" style={{ color: '#1C1917' }}>Vérifiez votre boîte mail</h2>
+        <p className="text-sm" style={{ color: 'rgba(28,25,23,0.55)' }}>
+          Un lien de connexion a été envoyé à<br />
+          <strong style={{ color: '#1C1917' }}>{email}</strong>
+        </p>
+        <p className="text-xs" style={{ color: 'rgba(28,25,23,0.35)' }}>Le lien expire dans 15 minutes.</p>
+        <button
+          onClick={() => { setEmailSent(false); setEmail('') }}
+          className="text-xs underline underline-offset-2"
+          style={{ color: 'rgba(28,25,23,0.4)' }}
+        >
+          Utiliser une autre adresse
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-black mb-2" style={{ color: '#1C1917' }}>Bienvenue</h1>
+        <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>
+          Connectez-vous pour accéder à votre espace TrackAds
+        </p>
+      </div>
+
+      {/* Google */}
+      <button
+        onClick={handleGoogle}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed mb-4 text-sm"
+        style={{ background: 'white', border: '1.5px solid rgba(28,25,23,0.15)', color: '#1C1917', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#FAFAF8' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'white' }}
+      >
+        {loading ? (
+          <svg className="animate-spin h-5 w-5" style={{ color: '#F97316' }} viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+        ) : <GoogleIcon />}
+        {loading ? 'Connexion…' : 'Continuer avec Google'}
+      </button>
+
+      {/* Separator */}
+      <div className="relative my-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full" style={{ borderTop: '1px solid rgba(28,25,23,0.1)' }} />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="px-3 text-xs" style={{ background: 'white', color: 'rgba(28,25,23,0.4)' }}>ou</span>
+        </div>
+      </div>
+
+      {/* Magic link form */}
+      <form onSubmit={handleMagicLink} className="space-y-3">
+        <input
+          type="email"
+          placeholder="votre@email.com"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+          style={{
+            background: 'white',
+            border: '1px solid rgba(28,25,23,0.12)',
+            color: '#1C1917',
+          }}
+          onFocus={e => e.currentTarget.style.borderColor = '#F97316'}
+          onBlur={e => e.currentTarget.style.borderColor = 'rgba(28,25,23,0.12)'}
+        />
+        <button
+          type="submit"
+          disabled={emailLoading || !email.trim()}
+          className="w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: 'linear-gradient(135deg, #F97316, #FB923C)',
+            color: 'white',
+            boxShadow: '0 2px 10px rgba(249,115,22,0.3)',
+          }}
+        >
+          {emailLoading ? 'Envoi en cours…' : 'Envoyer le lien magique'}
+        </button>
+      </form>
+
+      {error && (
+        <p className="text-xs text-center mt-3" style={{ color: '#EF4444' }}>⚠️ {error}</p>
+      )}
+
+      {/* Legal */}
+      <p className="text-center text-xs mt-6" style={{ color: 'rgba(28,25,23,0.4)' }}>
+        En continuant, vous acceptez nos{' '}
+        <a href="#" className="underline underline-offset-2" style={{ color: 'rgba(28,25,23,0.6)' }}>CGU</a>
+        {' '}et notre{' '}
+        <a href="#" className="underline underline-offset-2" style={{ color: 'rgba(28,25,23,0.6)' }}>politique de confidentialité</a>.
+      </p>
+    </>
+  )
+}
+
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
       style={{ background: '#FFFBF7' }}>
-      {/* Background glow subtil */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)' }} />
 
-      {/* Card */}
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -34,69 +201,12 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Form card */}
+        {/* Card */}
         <div className="rounded-2xl p-8"
           style={{ background: 'white', border: '1px solid rgba(28,25,23,0.1)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-black mb-2" style={{ color: '#1C1917' }}>Bienvenue</h1>
-            <p className="text-sm" style={{ color: 'rgba(28,25,23,0.5)' }}>Connectez-vous pour accéder à votre espace TrackAds</p>
-          </div>
-
-          {/* Google button */}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed mb-4 text-sm"
-            style={{ background: 'white', border: '1.5px solid rgba(28,25,23,0.15)', color: '#1C1917', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
-            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#FAFAF8' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'white' }}
-          >
-            {loading ? (
-              <svg className="animate-spin h-5 w-5" style={{ color: '#F97316' }} viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
-            ) : (
-              <GoogleIcon />
-            )}
-            {loading ? 'Connexion…' : 'Continuer avec Google'}
-          </button>
-
-          {/* Separator */}
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full" style={{ borderTop: '1px solid rgba(28,25,23,0.1)' }} />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-3 text-xs" style={{ background: 'white', color: 'rgba(28,25,23,0.4)' }}>ou</span>
-            </div>
-          </div>
-
-          {/* Magic link placeholder */}
-          <div className="space-y-3">
-            <input
-              type="email"
-              placeholder="votre@email.com"
-              disabled
-              className="w-full rounded-xl px-4 py-3 text-sm cursor-not-allowed"
-              style={{ background: '#FAFAF8', border: '1px solid rgba(28,25,23,0.1)', color: 'rgba(28,25,23,0.35)' }}
-            />
-            <button
-              disabled
-              className="w-full py-3 rounded-xl font-semibold text-sm cursor-not-allowed"
-              style={{ background: 'rgba(249,115,22,0.08)', color: 'rgba(249,115,22,0.5)', border: '1px solid rgba(249,115,22,0.15)' }}
-            >
-              Envoyer le lien magique (bientôt)
-            </button>
-          </div>
-
-          {/* Legal */}
-          <p className="text-center text-xs mt-6" style={{ color: 'rgba(28,25,23,0.4)' }}>
-            En continuant, vous acceptez nos{' '}
-            <a href="#" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(28,25,23,0.6)' }}>CGU</a>
-            {' '}et notre{' '}
-            <a href="#" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(28,25,23,0.6)' }}>politique de confidentialité</a>.
-          </p>
+          <Suspense fallback={<div className="text-center text-sm" style={{ color: 'rgba(28,25,23,0.4)' }}>Chargement…</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
 
         <p className="text-center text-xs mt-6">

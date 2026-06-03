@@ -1,13 +1,32 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
+import Credentials from 'next-auth/providers/credentials'
 import { upsertUser, getUserRecord } from '@/lib/user-plan'
 import { sendWelcomeEmail } from '@/lib/resend'
+import { verifyMagicToken } from '@/lib/magic-link'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Credentials({
+      id: 'magic-link',
+      name: 'Magic Link',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        token: { label: 'Token', type: 'text' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.token) return null
+        const user = await verifyMagicToken(
+          String(credentials.email),
+          String(credentials.token)
+        )
+        if (!user) return null
+        return { id: user.email, email: user.email, name: user.name }
+      },
     }),
   ],
   pages: {

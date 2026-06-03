@@ -101,6 +101,55 @@ export async function sendWinnerAdAlert(opts: {
   })
 }
 
+// ─── Email : magic link connexion ────────────────────────────────────────────
+
+export async function sendMagicLinkEmail(opts: { to: string; magicUrl: string }) {
+  return getResend().emails.send({
+    from: FROM,
+    to: opts.to,
+    subject: `Votre lien de connexion TrackAds`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#FFFBF7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:480px;margin:0 auto;padding:40px 24px;">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:36px;">
+      <div style="width:34px;height:34px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:9px;"></div>
+      <span style="font-size:17px;font-weight:900;color:#1C1917;">TrackAds</span>
+    </div>
+
+    <h1 style="font-size:22px;font-weight:900;color:#1C1917;margin:0 0 8px;">
+      Votre lien de connexion
+    </h1>
+    <p style="font-size:14px;color:rgba(28,25,23,0.55);line-height:1.6;margin:0 0 28px;">
+      Cliquez sur le bouton ci-dessous pour vous connecter à TrackAds.<br>
+      Ce lien expire dans <strong>15 minutes</strong> et ne peut être utilisé qu'une seule fois.
+    </p>
+
+    <a href="${opts.magicUrl}"
+       style="display:block;background:linear-gradient(135deg,#F97316,#FB923C);color:white;text-decoration:none;text-align:center;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;margin-bottom:24px;">
+      Se connecter à TrackAds →
+    </a>
+
+    <p style="font-size:12px;color:rgba(28,25,23,0.35);margin:0 0 4px;">
+      Ou copiez ce lien dans votre navigateur :
+    </p>
+    <p style="font-size:11px;color:rgba(28,25,23,0.4);word-break:break-all;margin:0 0 32px;">
+      ${opts.magicUrl}
+    </p>
+
+    <p style="font-size:11px;color:rgba(28,25,23,0.3);margin:0;">
+      Si vous n'avez pas demandé ce lien, ignorez cet email.
+    </p>
+  </div>
+</body>
+</html>
+    `,
+  })
+}
+
 // ─── Email : bienvenue onboarding ────────────────────────────────────────────
 
 export async function sendWelcomeEmail(opts: { to: string; name: string }) {
