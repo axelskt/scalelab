@@ -30,7 +30,7 @@ export default function VSLPro() {
   const [error, setError] = useState<string | null>(null)
   const [renderOutput, setRenderOutput] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('brief')
-  const [template, setTemplate] = useState<'premium' | 'editorial' | 'dynamic' | 'vertical'>('premium')
+  const [template, setTemplate] = useState<'premium' | 'editorial' | 'dynamic' | 'vertical' | 'agent'>('agent')
 
   const handlePatternChange = (pattern: VSLPattern) => {
     setBrief((b) => ({ ...b, pattern }))
@@ -114,13 +114,15 @@ export default function VSLPro() {
         <div className="ml-auto flex items-center gap-1.5">
           <span className="text-xs mr-1" style={{ color: 'rgba(28,25,23,0.4)' }}>Style :</span>
           {([
-            { key: 'premium',   label: 'Premium Dark' },
-            { key: 'vertical',  label: 'Vertical 9:16' },
-            { key: 'editorial', label: 'Éditorial' },
-            { key: 'dynamic',   label: 'Dynamique' },
+            { key: 'agent',     label: '🤖 Agent Demo', desc: 'Screen recording + sons' },
+            { key: 'premium',   label: '🌑 Premium Dark', desc: 'Motion design sombre' },
+            { key: 'vertical',  label: '📱 Vertical 9:16', desc: 'TikTok/Reels' },
+            { key: 'editorial', label: '📰 Éditorial', desc: 'Clean & minimal' },
+            { key: 'dynamic',   label: '⚡ Dynamique', desc: 'Énergie max' },
           ] as const).map(t => (
             <button key={t.key}
               onClick={() => setTemplate(t.key)}
+              title={t.desc}
               className="px-3 py-1 rounded-full text-xs font-medium transition-all"
               style={template === t.key
                 ? { background: '#F97316', color: 'white', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }
