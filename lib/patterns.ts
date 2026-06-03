@@ -14,8 +14,8 @@ export interface PatternInfo {
 export const VSL_PATTERNS: PatternInfo[] = [
   {
     id: 'PAS',
-    name: 'PAS',
-    tagline: 'Problem → Agitate → Solution',
+    name: 'Douleur → Solution',
+    tagline: 'Le plus puissant pour convertir',
     emoji: '🔥',
     description: 'Le pattern le plus puissant pour les produits qui résolvent une douleur claire. Identifie le problème, amplifie la douleur, présente ta solution comme la seule issue.',
     bestFor: ['Formations', 'SaaS', 'Coaching', 'Produits B2C'],
@@ -28,8 +28,8 @@ export const VSL_PATTERNS: PatternInfo[] = [
   },
   {
     id: 'AIDA',
-    name: 'AIDA',
-    tagline: 'Attention → Interest → Desire → Action',
+    name: 'Le Classique',
+    tagline: 'Attirer → Intéresser → Désirer → Agir',
     emoji: '⚡',
     description: 'Le classique du copywriting. Parfait pour les audiences froides qui ne te connaissent pas encore. Construit progressivement l\'envie.',
     bestFor: ['Publicités', 'Lancement', 'Audience froide', 'SaaS'],
@@ -43,8 +43,8 @@ export const VSL_PATTERNS: PatternInfo[] = [
   },
   {
     id: 'PASTOR',
-    name: 'PASTOR',
-    tagline: 'Problem → Amplify → Story → Testimony → Offer → Response',
+    name: 'Histoire + Preuve',
+    tagline: 'Le plus complet pour les offres premium',
     emoji: '🎯',
     description: 'Le pattern le plus complet. Combine storytelling, preuve sociale et offre irrésistible. Idéal pour les produits premium à haute valeur perçue.',
     bestFor: ['Formations premium', 'Coaching haut de gamme', 'B2B', 'Ticket élevé'],
@@ -60,8 +60,8 @@ export const VSL_PATTERNS: PatternInfo[] = [
   },
   {
     id: 'BAB',
-    name: 'BAB',
-    tagline: 'Before → After → Bridge',
+    name: 'Avant / Après',
+    tagline: 'La transformation en 3 étapes',
     emoji: '🌉',
     description: 'Simple, puissant, visuel. Montre la transformation de façon cristalline. Parfait pour des vidéos courtes avec des résultats chiffrés impressionnants.',
     bestFor: ['Résultats rapides', 'Transformation visible', 'Réseaux sociaux', 'Courte durée'],
@@ -74,8 +74,8 @@ export const VSL_PATTERNS: PatternInfo[] = [
   },
   {
     id: 'Story',
-    name: 'Story-Based',
-    tagline: 'Hook → Story → Révélation → Preuve → CTA',
+    name: 'La Story',
+    tagline: 'Storytelling émotionnel pur',
     emoji: '📖',
     description: 'Le storytelling pur. Engage émotionnellement en racontant une histoire réelle de transformation. Le plus persuasif pour les audiences qui ont des objections.',
     bestFor: ['Personal branding', 'Audience chaude', 'Produits lifestyle', 'Communauté'],

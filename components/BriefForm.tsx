@@ -145,41 +145,72 @@ export default function BriefForm({ brief, onChange, onGenerate, loading }: Prop
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label style={labelStyle}>Format</label>
-            <select
-              style={{ ...inputStyle, cursor: 'pointer' }}
-              value={brief.format}
-              onChange={(e) => set('format', e.target.value as VideoFormat)}
-            >
-              <option value="16:9">16:9 (YouTube)</option>
-              <option value="9:16">9:16 (TikTok/Reel)</option>
-              <option value="1:1">1:1 (Instagram)</option>
-            </select>
+        {/* Format */}
+        <div>
+          <label style={labelStyle}>Format</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {([
+              { value: '16:9', label: '16:9', sub: 'YouTube' },
+              { value: '9:16', label: '9:16', sub: 'TikTok' },
+              { value: '1:1',  label: '1:1',  sub: 'Instagram' },
+            ] as const).map(f => (
+              <button key={f.value} type="button"
+                onClick={() => set('format', f.value)}
+                style={{
+                  flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer',
+                  border: brief.format === f.value ? '1.5px solid #F97316' : '1px solid rgba(28,25,23,0.12)',
+                  background: brief.format === f.value ? 'rgba(249,115,22,0.06)' : 'white',
+                  textAlign: 'center',
+                }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: brief.format === f.value ? '#F97316' : '#1C1917' }}>{f.label}</div>
+                <div style={{ fontSize: 10, color: 'rgba(28,25,23,0.4)', marginTop: 2 }}>{f.sub}</div>
+              </button>
+            ))}
           </div>
-          <div>
-            <label style={labelStyle}>Langue</label>
-            <select
-              style={{ ...inputStyle, cursor: 'pointer' }}
-              value={brief.language}
-              onChange={(e) => set('language', e.target.value as 'fr' | 'en')}
-            >
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-            </select>
+        </div>
+
+        {/* Langue */}
+        <div>
+          <label style={labelStyle}>Langue</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {([
+              { value: 'fr', label: '🇫🇷 Français' },
+              { value: 'en', label: '🇬🇧 English' },
+            ] as const).map(l => (
+              <button key={l.value} type="button"
+                onClick={() => set('language', l.value)}
+                style={{
+                  flex: 1, padding: '9px 12px', borderRadius: 10, cursor: 'pointer',
+                  border: brief.language === l.value ? '1.5px solid #F97316' : '1px solid rgba(28,25,23,0.12)',
+                  background: brief.language === l.value ? 'rgba(249,115,22,0.06)' : 'white',
+                  fontSize: 13, fontWeight: 600,
+                  color: brief.language === l.value ? '#F97316' : '#1C1917',
+                }}>
+                {l.label}
+              </button>
+            ))}
           </div>
-          <div>
-            <label style={labelStyle}>Durée (sec)</label>
-            <select
-              style={{ ...inputStyle, cursor: 'pointer' }}
-              value={brief.durationSeconds}
-              onChange={(e) => set('durationSeconds', parseInt(e.target.value))}
-            >
-              <option value={60}>60s</option>
-              <option value={90}>90s</option>
-              <option value={120}>120s</option>
-            </select>
+        </div>
+
+        {/* Durée */}
+        <div>
+          <label style={labelStyle}>Durée</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {([60, 90, 120] as const).map(d => (
+              <button key={d} type="button"
+                onClick={() => set('durationSeconds', d)}
+                style={{
+                  flex: 1, padding: '8px 4px', borderRadius: 10, cursor: 'pointer',
+                  border: brief.durationSeconds === d ? '1.5px solid #F97316' : '1px solid rgba(28,25,23,0.12)',
+                  background: brief.durationSeconds === d ? 'rgba(249,115,22,0.06)' : 'white',
+                  textAlign: 'center',
+                }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: brief.durationSeconds === d ? '#F97316' : '#1C1917' }}>{d}s</div>
+                <div style={{ fontSize: 10, color: 'rgba(28,25,23,0.4)', marginTop: 1 }}>
+                  {d === 60 ? 'Court' : d === 90 ? 'Standard' : 'Long'}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
