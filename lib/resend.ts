@@ -8,6 +8,19 @@ function getResend() {
 
 const FROM = 'TrackAds <noreply@scalelab.iamanager.fr>'
 
+// Logo email-safe (pas de SVG inline — non supporté par les clients mail)
+const EMAIL_LOGO = `
+<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+  <tr>
+    <td style="background:linear-gradient(135deg,#F97316,#FB923C);border-radius:10px;width:36px;height:36px;text-align:center;vertical-align:middle;font-size:18px;font-weight:900;color:white;padding:0;">
+      &#8599;
+    </td>
+    <td style="padding-left:10px;vertical-align:middle;">
+      <span style="font-size:18px;font-weight:900;color:#1C1917;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">TrackAds</span>
+    </td>
+  </tr>
+</table>`
+
 // ─── Email : nouvelle pub qui cartonne ───────────────────────────────────────
 
 export async function sendWinnerAdAlert(opts: {
@@ -35,12 +48,7 @@ export async function sendWinnerAdAlert(opts: {
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;">
-      <div style="width:36px;height:36px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-        <span style="color:white;font-size:16px;">📈</span>
-      </div>
-      <span style="font-size:18px;font-weight:900;color:#1C1917;">TrackAds</span>
-    </div>
+    ${EMAIL_LOGO}
 
     <!-- Alert badge -->
     <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:999px;padding:4px 12px;margin-bottom:16px;">
@@ -115,10 +123,7 @@ export async function sendMagicLinkEmail(opts: { to: string; magicUrl: string })
 <body style="margin:0;padding:0;background:#FFFBF7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:480px;margin:0 auto;padding:40px 24px;">
 
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:36px;">
-      <div style="width:34px;height:34px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:9px;"></div>
-      <span style="font-size:17px;font-weight:900;color:#1C1917;">TrackAds</span>
-    </div>
+    ${EMAIL_LOGO}
 
     <h1 style="font-size:22px;font-weight:900;color:#1C1917;margin:0 0 8px;">
       Votre lien de connexion
@@ -164,11 +169,7 @@ export async function sendWelcomeEmail(opts: { to: string; name: string }) {
 <body style="margin:0;padding:0;background:#FFFBF7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
 
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;">
-      <div style="width:36px;height:36px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:10px;">
-      </div>
-      <span style="font-size:18px;font-weight:900;color:#1C1917;">TrackAds</span>
-    </div>
+    ${EMAIL_LOGO}
 
     <h1 style="font-size:24px;font-weight:900;color:#1C1917;margin:0 0 12px;">
       Bienvenue, ${opts.name?.split(' ')[0] || 'ami'} 🎉
